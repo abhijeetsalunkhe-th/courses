@@ -1,0 +1,75 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" dir="ltr" lang="en-US">
+<head>
+    <title>Error Handling for External Calls</title>
+    <style type="text/css" media="screen">
+		@import url( ../shared/style.css );
+	</style>
+	<script src="../shared/scormfunctions.js" type="text/javascript"></script>
+	<script src="../shared/contentfunctions.js" type="text/javascript"></script>
+</head>
+<body>
+<h1>Error Handling for External Calls</h1>
+
+<h2>WebClient Error Handling</h2>
+<blockquote>
+public ExternalData fetchDataWithErrorHandling(String id) {
+    return webClient.get()
+        .uri("/data/{id}", id)
+        .retrieve()
+        .onStatus(HttpStatus::is4xxClientError, response -&gt; {
+            return Mono.error(new ExternalServiceException("Client error: " + response.statusCode()));
+        })
+        .onStatus(HttpStatus::is5xxServerError, response -&gt; {
+            return Mono.error(new ExternalServiceException("Server error: " + response.statusCode()));
+        })
+        .bodyToMono(ExternalData.class)
+        .timeout(Duration.ofSeconds(10))
+        .retry(3)
+        .block();
+}
+</blockquote>
+
+<h2>Timeout Configuration</h2>
+<blockquote>
+@Bean
+public WebClient webClient() {
+    HttpClient httpClient = HttpClient.create()
+        .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000)
+        .responseTimeout(Duration.ofSeconds(10));
+        
+    return WebClient.builder()
+        .clientConnector(new ReactorClientHttpConnector(httpClient))
+        .build();
+}
+</blockquote>
+
+<h2>Circuit Breaker Pattern</h2>
+<p>Use Resilience4j for circuit breaker functionality:</p>
+
+<blockquote>
+@Component
+public class ExternalServiceClient {
+    
+    @CircuitBreaker(name = "external-service", fallbackMethod = "fallbackData")
+    @Retry(name = "external-service")
+    @TimeLimiter(name = "external-service")
+    public CompletableFuture&lt;ExternalData&gt; fetchDataAsync(String id) {
+        return webClient.get()
+            .uri("/data/{id}", id)
+            .retrieve()
+            .bodyToMono(ExternalData.class)
+            .toFuture();
+    }
+    
+    public CompletableFuture&lt;ExternalData&gt; fallbackData(String id, Exception ex) {
+        return CompletableFuture.completedFuture(new ExternalData("fallback", "Fallback data"));
+    }
+}
+</blockquote>
+
+<script type="text/javascript">
+// No promotional content
+</script>
+</body>
+</html>

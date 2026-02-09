@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>10.2 Testing the Data Layer (@DataJpaTest)</title>
+    <link rel="stylesheet" href="../shared/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>10.2 Testing the Data Layer (@DataJpaTest)</h1>
+        
+        <div class="content-section">
+            <h2>Overview</h2>
+            <p>The <code>@DataJpaTest</code> annotation is designed for testing JPA repositories. It provides a fast testing environment by only loading JPA-related components and configuring an in-memory database.</p>
+        </div>
+
+        <div class="content-section">
+            <h2>Key Features</h2>
+            <ul>
+                <li><strong>Slice Testing:</strong> Only loads JPA components, not the entire Spring context</li>
+                <li><strong>In-Memory Database:</strong> Automatically configures H2 or TestContainers</li>
+                <li><strong>Transaction Rollback:</strong> Each test runs in a transaction that's rolled back</li>
+                <li><strong>TestEntityManager:</strong> Provides utilities for testing JPA entities</li>
+            </ul>
+        </div>
+
+        <div class="content-section">
+            <h2>Basic @DataJpaTest Example</h2>
+            <div class="code-block">
+                <pre><code>@DataJpaTest
+public class UserRepositoryTest {
+
+    @Autowired
+    private TestEntityManager entityManager;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Test
+    void shouldFindUserByEmail() {
+        // Given
+        User user = new User();
+        user.setUsername("testuser");
+        user.setEmail("test@example.com");
+        user.setPassword("password123");
+        entityManager.persistAndFlush(user);
+
+        // When
+        Optional&lt;User&gt; found = userRepository.findByEmail("test@example.com");
+
+        // Then
+        assertThat(found).isPresent();
+        assertThat(found.get().getUsername()).isEqualTo("testuser");
+    }
+
+    @Test
+    void shouldReturnEmptyWhenUserNotFound() {
+        // When
+        Optional&lt;User&gt; found = userRepository.findByEmail("nonexistent@example.com");
+
+        // Then
+        assertThat(found).isEmpty();
+    }
+}</code></pre>
+            </div>
+        </div>
+
+        <div class="content-section">
+            <h2>Testing Custom Queries</h2>
+            <div class="code-block">
+                <pre><code>@DataJpaTest
+public class UserRepositoryCustomQueryTest {
+
+    @Autowired
+    private TestEntityManager entityManager;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Test
+    void shouldFindActiveUsers() {
+        // Given
+        User activeUser = new User("active", "active@test.com", "pass", true);
+        User inactiveUser = new User("inactive", "inactive@test.com", "pass", false);
+        
+        entityManager.persist(activeUser);
+        entityManager.persist(inactiveUser);
+        entityManager.flush();
+
+        // When
+        List&lt;User&gt; activeUsers = userRepository.findByActiveTrue();
+
+        // Then
+        assertThat(activeUsers).hasSize(1);
+        assertThat(activeUsers.get(0).getUsername()).isEqualTo("active");
+    }
+
+    @Test
+    void shouldCountUsersByStatus() {
+        // Given
+        entityManager.persist(new User("user1", "user1@test.com", "pass", true));
+        entityManager.persist(new User("user2", "user2@test.com", "pass", true));
+        entityManager.persist(new User("user3", "user3@test.com", "pass", false));
+        entityManager.flush();
+
+        // When
+        long activeCount = userRepository.countByActiveTrue();
+        long inactiveCount = userRepository.countByActiveFalse();
+
+        // Then
+        assertThat(activeCount).isEqualTo(2);
+        assertThat(inactiveCount).isEqualTo(1);
+    }
+}</code></pre>
+            </div>
+        </div>
+
+        <div class="content-section">
+            <h2>Configuration Options</h2>
+            <div class="code-block">
+                <pre><code>@DataJpaTest
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE) // Use real DB
+@TestPropertySource(properties = {
+    "spring.jpa.hibernate.ddl-auto=create-drop",
+    "spring.datasource.url=jdbc:h2:mem:testdb"
+})
+public class UserRepositoryIntegrationTest {
+    // Test methods...
+}</code></pre>
+            </div>
+        </div>
+
+        <div class="content-section">
+            <h2>Best Practices</h2>
+            <ul>
+                <li><strong>Use TestEntityManager:</strong> For setting up test data and flushing changes</li>
+                <li><strong>Test Edge Cases:</strong> Empty results, null values, constraint violations</li>
+                <li><strong>Verify Relationships:</strong> Test entity associations and cascading operations</li>
+                <li><strong>Performance Testing:</strong> Use @Sql for complex data setup</li>
+            </ul>
+        </div>
+
+        <div class="content-section">
+            <h2>Testing with @Sql</h2>
+            <div class="code-block">
+                <pre><code>@DataJpaTest
+public class UserRepositoryWithSqlTest {
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Test
+    @Sql("/test-data/users.sql")
+    void shouldFindUsersFromSqlFile() {
+        // When
+        List&lt;User&gt; users = userRepository.findAll();
+
+        // Then
+        assertThat(users).hasSizeGreaterThan(0);
+    }
+
+    @Test
+    @Sql(statements = "INSERT INTO users (username, email, password, active) VALUES ('testuser', 'test@example.com', 'password', true)")
+    void shouldFindUserFromSqlStatement() {
+        // When
+        Optional&lt;User&gt; user = userRepository.findByUsername("testuser");
+
+        // Then
+        assertThat(user).isPresent();
+    }
+}</code></pre>
+            </div>
+        </div>
+
+        <div class="key-points">
+            <h3>Key Takeaways</h3>
+            <ul>
+                <li>@DataJpaTest provides fast, focused testing for the data layer</li>
+                <li>Use TestEntityManager for test data setup and entity management</li>
+                <li>Tests run in transactions that are automatically rolled back</li>
+                <li>Perfect for testing custom queries and repository methods</li>
+            </ul>
+        </div>
+    </div>
+
+    <script src="../shared/contentfunctions.js"></script>
+</body>
+</html>

@@ -1,0 +1,383 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" >
+<head>
+    <title>Test Assessment</title>
+    <style type="text/css" media="screen">
+		@import url( style.css );
+		
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+            border: 2px solid #F16F00;
+        }
+        
+        .modal h3 {
+            color: #F16F00;
+            margin-bottom: 1rem;
+            font-size: 1.25rem;
+        }
+        
+        .modal p {
+            color: #4a5568;
+            margin-bottom: 1.5rem;
+            line-height: 1.5;
+        }
+        
+        .modal-buttons {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: flex-end;
+        }
+        
+        .modal-btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .modal-btn-primary {
+            background: linear-gradient(135deg, #F16F00 0%, #e91e63 100%);
+            color: white;
+        }
+        
+        .modal-btn:hover {
+            transform: translateY(-1px);
+        }
+	</style>
+	
+    <script type="text/javascript">
+    
+    function showModal(title, message) {
+        return new Promise((resolve) => {
+            const overlay = document.createElement('div');
+            overlay.className = 'modal-overlay';
+            
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            
+            modal.innerHTML = `
+                <h3>${title}</h3>
+                <p>${message}</p>
+                <div class="modal-buttons">
+                    <button class="modal-btn modal-btn-primary" onclick="closeModal()">OK</button>
+                </div>
+            `;
+            
+            overlay.appendChild(modal);
+            document.body.appendChild(overlay);
+            
+            window.closeModal = function() {
+                document.body.removeChild(overlay);
+                resolve();
+            };
+        });
+    }
+    
+    var QUESTION_TYPE_CHOICE = "choice";
+    var QUESTION_TYPE_TF = "true-false";
+    var QUESTION_TYPE_NUMERIC = "numeric";
+    
+    function Question(id, text, type, answers, correctAnswer, objectiveId){
+        this.Id = id;
+        this.Text = text;
+        this.Type = type;
+        this.Answers = answers;
+        this.CorrectAnswer = correctAnswer;
+        this.ObjectiveId = objectiveId;
+    }
+
+    function Test(questions){
+        this.Questions = questions;
+    }
+    Test.prototype.AddQuestion = function(question)
+    {
+        this.Questions[this.Questions.length] = question;
+    }
+    
+    var test = new Test(new Array());
+    
+    // Add test questions
+    test.AddQuestion(new Question("test_1", "What is 2 + 2?", QUESTION_TYPE_NUMERIC, null, 4, "test"));
+    test.AddQuestion(new Question("test_2", "Spring Boot is a Java framework", QUESTION_TYPE_TF, null, true, "test"));
+    test.AddQuestion(new Question("test_3", "Which is correct?", QUESTION_TYPE_CHOICE, ["Option A", "Option B", "Option C"], "Option B", "test"));
+</script>
+
+<script type="text/javascript">
+    function CheckNumeric(obj){
+        var userText = new String(obj.value);
+        var numbersRegEx = /[^0-9]/g;
+        if (userText.search(numbersRegEx) >= 0){
+            showModal('Invalid Input', 'Please enter only numeric values.');
+            obj.value = userText.replace(numbersRegEx, "");
+        }
+    }
+    
+    function SubmitAnswers(){
+        var correctCount = 0;
+        var attemptedCount = 0;
+        
+        // Disable all inputs
+        var inputs = document.querySelectorAll('input[type="radio"], input[type="text"]');
+        for (var i = 0; i < inputs.length; i++) {
+            inputs[i].disabled = true;
+        }
+        
+        for (var i in test.Questions){
+            var question = test.Questions[i];
+            
+            var wasCorrect = false;
+            var correctAnswer = null;
+            var learnerResponse = "";
+            var wasAttempted = false;
+            
+            switch (question.Type){
+                case QUESTION_TYPE_CHOICE:
+                    for (var answerIndex = 0; answerIndex < question.Answers.length; answerIndex++){
+                        if (question.CorrectAnswer == question.Answers[answerIndex]){
+                            correctAnswer = answerIndex;
+                        }
+                        if (document.getElementById("question_" + question.Id + "_" + answerIndex).checked == true){
+                            learnerResponse = answerIndex;
+                            wasAttempted = true;
+                        }
+                    }
+                break;
+                
+                case QUESTION_TYPE_TF:
+                    if (document.getElementById("question_" + question.Id + "_True").checked == true){
+                        learnerResponse = "true";
+                        wasAttempted = true;
+                    }
+                    if (document.getElementById("question_" + question.Id + "_False").checked == true){
+                       learnerResponse = "false";
+                       wasAttempted = true;
+                    } 
+                    if (question.CorrectAnswer == true){
+                        correctAnswer = "true";
+                    }
+                    else{
+                        correctAnswer = "false"; 
+                    }
+                break;
+                
+                case QUESTION_TYPE_NUMERIC:
+                    correctAnswer = question.CorrectAnswer;
+                    learnerResponse = document.getElementById("question_" + question.Id + "_Text").value;
+                    if (learnerResponse.trim() !== "") {
+                        wasAttempted = true;
+                    }
+                break;
+            }
+            
+            // Only process attempted questions
+            if (wasAttempted) {
+                attemptedCount++;
+                wasCorrect = (correctAnswer == learnerResponse);
+                if (wasCorrect) {correctCount++;}
+                
+                // Color code only attempted questions
+                var questionDiv = document.getElementById("question_" + question.Id);
+                if (wasCorrect) {
+                    questionDiv.style.borderLeft = "4px solid #059669";
+                    questionDiv.style.backgroundColor = "rgba(5, 150, 105, 0.1)";
+                    
+                    // Show correct answer styling for correct responses
+                    if (question.Type === QUESTION_TYPE_CHOICE) {
+                        var correctAnswerLabel = document.querySelector('label[for="question_' + question.Id + '_' + correctAnswer + '"]');
+                        if (correctAnswerLabel) {
+                            correctAnswerLabel.style.color = "#059669";
+                            correctAnswerLabel.style.fontWeight = "bold";
+                        }
+                    } else if (question.Type === QUESTION_TYPE_TF) {
+                        var correctTFLabel = document.querySelector('label[for="question_' + question.Id + '_' + (correctAnswer === "true" ? "True" : "False") + '"]');
+                        if (correctTFLabel) {
+                            correctTFLabel.style.color = "#059669";
+                            correctTFLabel.style.fontWeight = "bold";
+                        }
+                    } else if (question.Type === QUESTION_TYPE_NUMERIC) {
+                        var textInput = document.getElementById("question_" + question.Id + "_Text");
+                        textInput.style.borderColor = "#059669";
+                        textInput.style.backgroundColor = "rgba(5, 150, 105, 0.1)";
+                    }
+                } else {
+                    questionDiv.style.borderLeft = "4px solid #dc2626";
+                    questionDiv.style.backgroundColor = "rgba(220, 38, 38, 0.1)";
+                    
+                    // Highlight wrong answers and show correct answers only for incorrect responses
+                    if (question.Type === QUESTION_TYPE_CHOICE) {
+                        var wrongAnswer = document.querySelector('label[for="question_' + question.Id + '_' + learnerResponse + '"]');
+                        if (wrongAnswer) {
+                            wrongAnswer.style.color = "#dc2626";
+                            wrongAnswer.style.fontWeight = "bold";
+                        }
+                        var correctAnswerLabel = document.querySelector('label[for="question_' + question.Id + '_' + correctAnswer + '"]');
+                        if (correctAnswerLabel) {
+                            correctAnswerLabel.style.color = "#059669";
+                            correctAnswerLabel.style.fontWeight = "bold";
+                        }
+                    } else if (question.Type === QUESTION_TYPE_TF) {
+                        var wrongTFLabel = document.querySelector('label[for="question_' + question.Id + '_' + (learnerResponse === "true" ? "True" : "False") + '"]');
+                        if (wrongTFLabel) {
+                            wrongTFLabel.style.color = "#dc2626";
+                            wrongTFLabel.style.fontWeight = "bold";
+                        }
+                        var correctTFLabel = document.querySelector('label[for="question_' + question.Id + '_' + (correctAnswer === "true" ? "True" : "False") + '"]');
+                        if (correctTFLabel) {
+                            correctTFLabel.style.color = "#059669";
+                            correctTFLabel.style.fontWeight = "bold";
+                        }
+                    } else if (question.Type === QUESTION_TYPE_NUMERIC) {
+                        var textInput = document.getElementById("question_" + question.Id + "_Text");
+                        textInput.style.borderColor = "#dc2626";
+                        textInput.style.backgroundColor = "rgba(220, 38, 38, 0.1)";
+                        var correctAnswerSpan = document.createElement('span');
+                        correctAnswerSpan.innerHTML = ' (Correct: ' + correctAnswer + ')';
+                        correctAnswerSpan.style.color = '#059669';
+                        correctAnswerSpan.style.fontWeight = 'bold';
+                        textInput.parentNode.appendChild(correctAnswerSpan);
+                    }
+                }
+            }
+        }
+        
+        if (attemptedCount === 0) {
+            showModal('Assessment Incomplete', 'Please answer at least one question before submitting.');
+            // Re-enable inputs
+            for (var i = 0; i < inputs.length; i++) {
+                inputs[i].disabled = false;
+            }
+            return;
+        }
+        
+        var score = Math.round(correctCount * 100 / attemptedCount);
+        var passed = score >= 70;
+        
+        var resultDiv = document.createElement('div');
+        resultDiv.id = 'results';
+        resultDiv.style.cssText = 'background: rgba(255, 255, 255, 0.9); border-radius: 12px; padding: 2rem; margin: 2rem 0; box-shadow: 0 4px 6px rgba(0,0,0,0.1); text-align: center;';
+        resultDiv.innerHTML = '<h2 style="color: ' + (passed ? '#059669' : '#dc2626') + '; margin-bottom: 1rem;">Assessment Results</h2>' +
+                             '<p style="font-size: 1.5em; font-weight: 600; margin-bottom: 1rem;">Score: ' + score + '%</p>' +
+                             '<p style="font-size: 1.1em; margin-bottom: 1rem;">(' + correctCount + ' correct out of ' + attemptedCount + ' attempted)</p>' +
+                             '<p style="color: ' + (passed ? '#059669' : '#dc2626') + '; font-weight: 600; font-size: 1.2em;">' + 
+                             (passed ? '✅ Congratulations! You passed the assessment.' : '❌ You need 70% to pass. Please review the material and try again.') + '</p>';
+        
+        var submitButton = document.querySelector('input[value="Submit Answers"]');
+        submitButton.style.display = 'none';
+        
+        var resetButton = document.createElement('input');
+        resetButton.type = 'button';
+        resetButton.value = 'Reset Assessment';
+        resetButton.onclick = ResetAssessment;
+        resetButton.style.cssText = 'background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%); color: white; border: none; padding: 1rem 2rem; border-radius: 12px; font-size: 1rem; font-weight: 600; cursor: pointer; margin-left: 10px;';
+        
+        submitButton.parentNode.insertBefore(resultDiv, submitButton);
+        submitButton.parentNode.insertBefore(resetButton, submitButton);
+    }
+    
+    function RenderTest(test){
+        document.write ("<div id='test'><form id='frmTest' action='#'>");
+        
+        for (var i in test.Questions){
+            var question = test.Questions[i];
+            
+            document.write ("<div id='question_" + question.Id + "' class='question'>");
+            document.write (question.Text);
+            
+            switch (question.Type){
+                case QUESTION_TYPE_CHOICE:
+                    var ansIndex = 0;
+                    for (var j in question.Answers){
+                        var answer = question.Answers[j];
+                        document.write("<div class='answer'><input type='radio' name='question_" + question.Id + "_choices' id='question_" + question.Id + "_" + ansIndex + "'/><label for='question_" + question.Id + "_" + ansIndex + "'>" + answer + "</label></div>");
+                        ansIndex++;
+                    }
+                break;
+                
+                case QUESTION_TYPE_TF:
+                    document.write("<div class='answer'><input type='radio' name='question_" + question.Id + "_choices' id='question_" + question.Id + "_True'/><label for='question_" + question.Id + "_True'>True</label></div>");
+                    document.write("<div class='answer'><input type='radio' name='question_" + question.Id + "_choices' id='question_" + question.Id + "_False'/><label for='question_" + question.Id + "_False'>False</label></div>");
+                break;
+                
+                case QUESTION_TYPE_NUMERIC:
+                    document.write("<div class='answer'><input type='text' value='' id='question_" + question.Id + "_Text' onchange='CheckNumeric(this)'/></div>");
+                break;
+                
+                default:
+                    showModal('Error', 'Invalid question type detected');
+                break;
+            }
+            document.write ("</div>");
+        }
+        document.write("<input type='button' value='Submit Answers' onclick='SubmitAnswers();' />");
+        document.write ("</form></div>");
+    }
+    
+    function ResetAssessment(){
+        var resultsDiv = document.getElementById('results');
+        if (resultsDiv) resultsDiv.remove();
+        
+        var resetButton = document.querySelector('input[value="Reset Assessment"]');
+        if (resetButton) resetButton.remove();
+        
+        document.querySelector('input[value="Submit Answers"]').style.display = 'inline-block';
+        
+        var inputs = document.querySelectorAll('input[type="radio"], input[type="text"]');
+        for (var i = 0; i < inputs.length; i++) {
+            inputs[i].disabled = false;
+            inputs[i].checked = false;
+            inputs[i].value = '';
+            inputs[i].style.borderColor = '';
+            inputs[i].style.backgroundColor = '';
+        }
+        
+        for (var i in test.Questions){
+            var questionDiv = document.getElementById("question_" + test.Questions[i].Id);
+            if (questionDiv) {
+                questionDiv.style.borderLeft = '';
+                questionDiv.style.backgroundColor = '';
+            }
+        }
+        
+        var labels = document.querySelectorAll('label');
+        for (var i = 0; i < labels.length; i++) {
+            labels[i].style.color = '';
+            labels[i].style.fontWeight = '';
+        }
+        
+        var spans = document.querySelectorAll('span');
+        for (var i = 0; i < spans.length; i++) {
+            if (spans[i].innerHTML && spans[i].innerHTML.indexOf('Correct:') !== -1) {
+                spans[i].remove();
+            }
+        }
+    }
+</script>
+</head>
+<body>
+<h1>Test Assessment</h1>
+<script type="text/javascript">
+RenderTest(test);
+</script>
+</body>
+</html>

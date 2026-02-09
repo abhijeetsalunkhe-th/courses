@@ -1,0 +1,493 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" dir="ltr" lang="en-US">
+<head>
+    <title>Implementing Full CRUD: PUT and PATCH</title>
+    <style type="text/css" media="screen">
+		@import url( ../shared/style.css );
+	</style>
+	<script src="../shared/scormfunctions.js" type="text/javascript"></script>
+	<script src="../shared/contentfunctions.js" type="text/javascript"></script>
+</head>
+<body>
+<h1>Implementing Full CRUD: PUT and PATCH</h1>
+
+<h2>Understanding HTTP Methods for Updates</h2>
+<table>
+    <tr>
+        <th>Method</th>
+        <th>Purpose</th>
+        <th>Idempotent</th>
+        <th>Request Body</th>
+    </tr>
+    <tr>
+        <td class="rowheader">PUT</td>
+        <td>Full resource replacement</td>
+        <td>Yes</td>
+        <td>Complete resource representation</td>
+    </tr>
+    <tr>
+        <td class="rowheader">PATCH</td>
+        <td>Partial resource update</td>
+        <td>No</td>
+        <td>Only fields to be updated</td>
+    </tr>
+    <tr>
+        <td class="rowheader">POST</td>
+        <td>Create new resource</td>
+        <td>No</td>
+        <td>Resource data for creation</td>
+    </tr>
+</table>
+
+<h2>PUT: Full Resource Replacement</h2>
+<p>PUT replaces the entire resource with the provided data. All fields should be included in the request.</p>
+
+<blockquote>
+@RestController
+@RequestMapping("/api/users")
+public class UserController {
+    
+    @Autowired
+    private UserService userService;
+    
+    @Autowired
+    private UserMapper userMapper;
+    
+    @PutMapping("/{id}")
+    public ResponseEntity&lt;UserResponse&gt; updateUser(
+            @PathVariable Long id,
+            @Valid @RequestBody UserUpdateRequest request) {
+        
+        // PUT should replace the entire resource
+        User updatedUser = userService.replaceUser(id, request);
+        UserResponse response = userMapper.toResponse(updatedUser);
+        
+        return ResponseEntity.ok(response);
+    }
+}
+
+// Full update request DTO
+public class UserUpdateRequest {
+    
+    @NotBlank(message = "Username is required")
+    @Size(min = 3, max = 50)
+    private String username;
+    
+    @NotBlank(message = "Email is required")
+    @Email
+    private String email;
+    
+    @NotBlank(message = "First name is required")
+    private String firstName;
+    
+    @NotBlank(message = "Last name is required")
+    private String lastName;
+    
+    @NotNull(message = "Status is required")
+    private UserStatus status;
+    
+    // All fields that can be updated should be included
+    // getters and setters
+}
+</blockquote>
+
+<h2>PUT Implementation in Service Layer</h2>
+<blockquote>
+@Service
+@Transactional
+public class UserService {
+    
+    @Autowired
+    private UserRepository userRepository;
+    
+    @Autowired
+    private UserMapper userMapper;
+    
+    public User replaceUser(Long id, UserUpdateRequest request) {
+        // Find existing user or throw exception
+        User existingUser = userRepository.findById(id)
+            .orElseThrow(() -&gt; new ResourceNotFoundException("User", id));
+        
+        // Replace all updatable fields
+        existingUser.setUsername(request.getUsername());
+        existingUser.setEmail(request.getEmail());
+        existingUser.setFirstName(request.getFirstName());
+        existingUser.setLastName(request.getLastName());
+        existingUser.setStatus(request.getStatus());
+        existingUser.setUpdatedAt(LocalDateTime.now());
+        
+        // Keep non-updatable fields (id, createdAt, etc.)
+        
+        return userRepository.save(existingUser);
+    }
+}
+</blockquote>
+
+<h2>PATCH: Partial Resource Update</h2>
+<p>PATCH updates only the fields provided in the request, leaving other fields unchanged.</p>
+
+<blockquote>
+@RestController
+@RequestMapping("/api/users")
+public class UserController {
+    
+    @PatchMapping("/{id}")
+    public ResponseEntity&lt;UserResponse&gt; patchUser(
+            @PathVariable Long id,
+            @RequestBody UserPatchRequest request) {
+        
+        // PATCH updates only provided fields
+        User updatedUser = userService.patchUser(id, request);
+        UserResponse response = userMapper.toResponse(updatedUser);
+        
+        return ResponseEntity.ok(response);
+    }
+}
+
+// Partial update request DTO - all fields optional
+public class UserPatchRequest {
+    
+    @Size(min = 3, max = 50, message = "Username must be between 3 and 50 characters")
+    private String username;
+    
+    @Email(message = "Must be a valid email format")
+    private String email;
+    
+    private String firstName;
+    private String lastName;
+    private UserStatus status;
+    
+    // All fields are optional for PATCH
+    // getters and setters
+    
+    // Helper methods to check if fields are provided
+    public boolean hasUsername() { return username != null; }
+    public boolean hasEmail() { return email != null; }
+    public boolean hasFirstName() { return firstName != null; }
+    public boolean hasLastName() { return lastName != null; }
+    public boolean hasStatus() { return status != null; }
+}
+</blockquote>
+
+<h2>PATCH Implementation in Service Layer</h2>
+<blockquote>
+@Service
+@Transactional
+public class UserService {
+    
+    public User patchUser(Long id, UserPatchRequest request) {
+        User existingUser = userRepository.findById(id)
+            .orElseThrow(() -&gt; new ResourceNotFoundException("User", id));
+        
+        // Update only provided fields
+        if (request.hasUsername()) {
+            // Validate username uniqueness if provided
+            if (!existingUser.getUsername().equals(request.getUsername()) &&
+                userRepository.existsByUsername(request.getUsername())) {
+                throw new BusinessException("Username already exists");
+            }
+            existingUser.setUsername(request.getUsername());
+        }
+        
+        if (request.hasEmail()) {
+            // Validate email uniqueness if provided
+            if (!existingUser.getEmail().equals(request.getEmail()) &&
+                userRepository.existsByEmail(request.getEmail())) {
+                throw new BusinessException("Email already exists");
+            }
+            existingUser.setEmail(request.getEmail());
+        }
+        
+        if (request.hasFirstName()) {
+            existingUser.setFirstName(request.getFirstName());
+        }
+        
+        if (request.hasLastName()) {
+            existingUser.setLastName(request.getLastName());
+        }
+        
+        if (request.hasStatus()) {
+            existingUser.setStatus(request.getStatus());
+        }
+        
+        existingUser.setUpdatedAt(LocalDateTime.now());
+        
+        return userRepository.save(existingUser);
+    }
+}
+</blockquote>
+
+<h2>Advanced PATCH with JSON Patch</h2>
+<p>For more sophisticated partial updates, you can implement JSON Patch (RFC 6902):</p>
+
+<blockquote>
+&lt;dependency&gt;
+    &lt;groupId&gt;com.github.java-json-tools&lt;/groupId&gt;
+    &lt;artifactId&gt;json-patch&lt;/artifactId&gt;
+    &lt;version&gt;1.13&lt;/version&gt;
+&lt;/dependency&gt;
+
+@PatchMapping(value = "/{id}", consumes = "application/json-patch+json")
+public ResponseEntity&lt;UserResponse&gt; patchUserWithJsonPatch(
+        @PathVariable Long id,
+        @RequestBody JsonPatch patch) {
+    
+    User updatedUser = userService.patchUserWithJsonPatch(id, patch);
+    UserResponse response = userMapper.toResponse(updatedUser);
+    
+    return ResponseEntity.ok(response);
+}
+
+// Service implementation
+public User patchUserWithJsonPatch(Long id, JsonPatch patch) {
+    User existingUser = findById(id);
+    
+    try {
+        // Convert user to JSON
+        JsonNode userNode = objectMapper.convertValue(existingUser, JsonNode.class);
+        
+        // Apply patch
+        JsonNode patchedNode = patch.apply(userNode);
+        
+        // Convert back to User object
+        User patchedUser = objectMapper.treeToValue(patchedNode, User.class);
+        
+        // Validate the patched user
+        validateUser(patchedUser);
+        
+        return userRepository.save(patchedUser);
+        
+    } catch (JsonPatchException | JsonProcessingException e) {
+        throw new BusinessException("Invalid patch operation: " + e.getMessage());
+    }
+}
+</blockquote>
+
+<h2>Handling Nested Objects in Updates</h2>
+<blockquote>
+// User with nested address
+public class UserWithAddressUpdateRequest {
+    
+    @NotBlank
+    private String username;
+    
+    @Valid  // Validate nested object
+    private AddressUpdateRequest address;
+    
+    // getters and setters
+}
+
+public class AddressUpdateRequest {
+    
+    @NotBlank
+    private String street;
+    
+    @NotBlank
+    private String city;
+    
+    @Pattern(regexp = "\\d{5}")
+    private String zipCode;
+    
+    // getters and setters
+}
+
+// Service method for nested updates
+public User updateUserWithAddress(Long id, UserWithAddressUpdateRequest request) {
+    User existingUser = findById(id);
+    
+    // Update user fields
+    existingUser.setUsername(request.getUsername());
+    
+    // Update nested address
+    if (existingUser.getAddress() == null) {
+        existingUser.setAddress(new Address());
+    }
+    
+    Address address = existingUser.getAddress();
+    address.setStreet(request.getAddress().getStreet());
+    address.setCity(request.getAddress().getCity());
+    address.setZipCode(request.getAddress().getZipCode());
+    
+    return userRepository.save(existingUser);
+}
+</blockquote>
+
+<h2>Optimistic Locking for Concurrent Updates</h2>
+<blockquote>
+@Entity
+public class User {
+    
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    
+    @Version  // Optimistic locking
+    private Long version;
+    
+    private String username;
+    // other fields
+}
+
+// Include version in update requests
+public class UserUpdateRequest {
+    
+    @NotNull(message = "Version is required for updates")
+    private Long version;
+    
+    @NotBlank
+    private String username;
+    
+    // other fields and getters/setters
+}
+
+// Service method with version check
+public User updateUser(Long id, UserUpdateRequest request) {
+    User existingUser = findById(id);
+    
+    // Check version for optimistic locking
+    if (!existingUser.getVersion().equals(request.getVersion())) {
+        throw new OptimisticLockingException("User has been modified by another process");
+    }
+    
+    // Update fields
+    existingUser.setUsername(request.getUsername());
+    // version will be automatically incremented by JPA
+    
+    return userRepository.save(existingUser);
+}
+</blockquote>
+
+<h2>Bulk Operations</h2>
+<blockquote>
+@RestController
+@RequestMapping("/api/users")
+public class UserController {
+    
+    // Bulk update multiple users
+    @PatchMapping("/bulk")
+    public ResponseEntity&lt;BulkUpdateResponse&gt; bulkUpdateUsers(
+            @Valid @RequestBody BulkUpdateRequest request) {
+        
+        BulkUpdateResponse response = userService.bulkUpdateUsers(request);
+        return ResponseEntity.ok(response);
+    }
+}
+
+public class BulkUpdateRequest {
+    
+    @NotEmpty(message = "User IDs are required")
+    private List&lt;Long&gt; userIds;
+    
+    private UserStatus status;  // Optional: update status for all users
+    private String department;  // Optional: update department for all users
+    
+    // getters and setters
+}
+
+// Service implementation
+@Transactional
+public BulkUpdateResponse bulkUpdateUsers(BulkUpdateRequest request) {
+    List&lt;User&gt; users = userRepository.findAllById(request.getUserIds());
+    
+    if (users.size() != request.getUserIds().size()) {
+        throw new BusinessException("Some users not found");
+    }
+    
+    int updatedCount = 0;
+    List&lt;String&gt; errors = new ArrayList&lt;&gt;();
+    
+    for (User user : users) {
+        try {
+            if (request.getStatus() != null) {
+                user.setStatus(request.getStatus());
+            }
+            if (request.getDepartment() != null) {
+                user.setDepartment(request.getDepartment());
+            }
+            user.setUpdatedAt(LocalDateTime.now());
+            updatedCount++;
+        } catch (Exception e) {
+            errors.add("Failed to update user " + user.getId() + ": " + e.getMessage());
+        }
+    }
+    
+    userRepository.saveAll(users);
+    
+    return new BulkUpdateResponse(updatedCount, errors);
+}
+</blockquote>
+
+<h2>Testing CRUD Operations</h2>
+<blockquote>
+@WebMvcTest(UserController.class)
+class UserControllerCrudTest {
+    
+    @Autowired
+    private MockMvc mockMvc;
+    
+    @MockBean
+    private UserService userService;
+    
+    @Test
+    void shouldUpdateUserWithPut() throws Exception {
+        // Given
+        UserUpdateRequest request = new UserUpdateRequest();
+        request.setUsername("newusername");
+        request.setEmail("new@example.com");
+        
+        User updatedUser = new User();
+        updatedUser.setId(1L);
+        updatedUser.setUsername("newusername");
+        
+        when(userService.replaceUser(eq(1L), any(UserUpdateRequest.class)))
+            .thenReturn(updatedUser);
+        
+        // When & Then
+        mockMvc.perform(put("/api/users/1")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.username").value("newusername"));
+    }
+    
+    @Test
+    void shouldPartiallyUpdateUserWithPatch() throws Exception {
+        // Given
+        UserPatchRequest request = new UserPatchRequest();
+        request.setUsername("patchedusername");
+        // email not provided - should remain unchanged
+        
+        User patchedUser = new User();
+        patchedUser.setId(1L);
+        patchedUser.setUsername("patchedusername");
+        patchedUser.setEmail("original@example.com");
+        
+        when(userService.patchUser(eq(1L), any(UserPatchRequest.class)))
+            .thenReturn(patchedUser);
+        
+        // When & Then
+        mockMvc.perform(patch("/api/users/1")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.username").value("patchedusername"))
+            .andExpect(jsonPath("$.email").value("original@example.com"));
+    }
+}
+</blockquote>
+
+<h2>Best Practices</h2>
+<ul>
+    <li><strong>Use PUT for Full Updates:</strong> When client sends complete resource representation</li>
+    <li><strong>Use PATCH for Partial Updates:</strong> When only specific fields need updating</li>
+    <li><strong>Validate Appropriately:</strong> Different validation rules for PUT vs PATCH</li>
+    <li><strong>Handle Concurrency:</strong> Use optimistic locking for concurrent updates</li>
+    <li><strong>Return Updated Resource:</strong> Include the updated resource in the response</li>
+    <li><strong>Idempotency:</strong> Ensure PUT operations are idempotent</li>
+</ul>
+
+<script type="text/javascript">
+// No promotional content
+</script>
+</body>
+</html>

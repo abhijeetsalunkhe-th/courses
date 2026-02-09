@@ -1,0 +1,55 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" dir="ltr" lang="en-US">
+<head>
+    <title>In-Memory User Authentication</title>
+    <style type="text/css" media="screen">
+		@import url( ../shared/style.css );
+	</style>
+	<script src="../shared/scormfunctions.js" type="text/javascript"></script>
+	<script src="../shared/contentfunctions.js" type="text/javascript"></script>
+</head>
+<body>
+<h1>In-Memory User Authentication</h1>
+
+<h2>Creating In-Memory Users</h2>
+<blockquote>
+@Configuration
+@EnableWebSecurity
+public class SecurityConfig {
+    
+    @Bean
+    public UserDetailsService userDetailsService() {
+        UserDetails user = User.builder()
+            .username("user")
+            .password(passwordEncoder().encode("password"))
+            .roles("USER")
+            .build();
+            
+        UserDetails admin = User.builder()
+            .username("admin")
+            .password(passwordEncoder().encode("admin"))
+            .roles("USER", "ADMIN")
+            .build();
+            
+        return new InMemoryUserDetailsManager(user, admin);
+    }
+    
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+}
+</blockquote>
+
+<h2>User Roles and Authorities</h2>
+<p>Spring Security distinguishes between roles and authorities:</p>
+<ul>
+    <li><strong>Roles:</strong> High-level permissions (ROLE_USER, ROLE_ADMIN)</li>
+    <li><strong>Authorities:</strong> Fine-grained permissions (READ_USERS, WRITE_USERS)</li>
+</ul>
+
+<script type="text/javascript">
+// No promotional content
+</script>
+</body>
+</html>

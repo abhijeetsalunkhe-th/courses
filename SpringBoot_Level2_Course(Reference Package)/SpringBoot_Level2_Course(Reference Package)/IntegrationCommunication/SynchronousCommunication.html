@@ -1,0 +1,51 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" dir="ltr" lang="en-US">
+<head>
+    <title>Synchronous Communication Basics</title>
+    <style type="text/css" media="screen">
+		@import url( ../shared/style.css );
+	</style>
+	<script src="../shared/scormfunctions.js" type="text/javascript"></script>
+	<script src="../shared/contentfunctions.js" type="text/javascript"></script>
+</head>
+<body>
+<h1>Synchronous Communication Basics</h1>
+
+<h2>Microservices Communication</h2>
+<p>In microservices architecture, services need to communicate to exchange data and coordinate operations.</p>
+
+<h2>Communication Patterns</h2>
+<table>
+    <tr>
+        <th>Pattern</th>
+        <th>When to Use</th>
+        <th>Pros</th>
+        <th>Cons</th>
+    </tr>
+    <tr>
+        <td class="rowheader">Synchronous</td>
+        <td>Immediate response needed</td>
+        <td>Simple, immediate feedback</td>
+        <td>Tight coupling, blocking</td>
+    </tr>
+    <tr>
+        <td class="rowheader">Asynchronous</td>
+        <td>Fire-and-forget operations</td>
+        <td>Loose coupling, scalable</td>
+        <td>Complex error handling</td>
+    </tr>
+</table>
+
+<h2>HTTP Client Options</h2>
+<ul>
+    <li><strong>RestTemplate:</strong> Legacy, synchronous (deprecated)</li>
+    <li><strong>WebClient:</strong> Modern, reactive, recommended</li>
+    <li><strong>Feign:</strong> Declarative HTTP client</li>
+    <li><strong>OkHttp:</strong> Third-party HTTP client</li>
+</ul>
+
+<script type="text/javascript">
+// No promotional content
+</script>
+</body>
+</html>

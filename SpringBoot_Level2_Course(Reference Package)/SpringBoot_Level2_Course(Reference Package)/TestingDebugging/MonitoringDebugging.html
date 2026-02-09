@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>10.4 Debugging and Monitoring</title>
+    <link rel="stylesheet" href="../shared/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>10.4 Debugging and Monitoring</h1>
+        
+        <div class="content-section">
+            <h2>Spring Boot Actuator</h2>
+            <p>Spring Boot Actuator provides production-ready features for monitoring and managing your application. It exposes various endpoints that give insights into your application's health, metrics, and configuration.</p>
+        </div>
+
+        <div class="content-section">
+            <h2>Adding Actuator Dependency</h2>
+            <div class="code-block">
+                <pre><code>&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-starter-actuator&lt;/artifactId&gt;
+&lt;/dependency&gt;</code></pre>
+            </div>
+        </div>
+
+        <div class="content-section">
+            <h2>Essential Actuator Endpoints</h2>
+            <div class="code-block">
+                <pre><code># application.properties
+management.endpoints.web.exposure.include=health,info,metrics,env,beans
+management.endpoint.health.show-details=always
+management.info.env.enabled=true</code></pre>
+            </div>
+
+            <h3>Key Endpoints:</h3>
+            <ul>
+                <li><strong>/actuator/health</strong> - Application health status</li>
+                <li><strong>/actuator/info</strong> - Application information</li>
+                <li><strong>/actuator/metrics</strong> - Runtime metrics</li>
+                <li><strong>/actuator/env</strong> - Environment properties</li>
+                <li><strong>/actuator/beans</strong> - Spring beans information</li>
+            </ul>
+        </div>
+
+        <div class="content-section">
+            <h2>Health Checks</h2>
+            <div class="code-block">
+                <pre><code>@Component
+public class DatabaseHealthIndicator implements HealthIndicator {
+
+    @Autowired
+    private DataSource dataSource;
+
+    @Override
+    public Health health() {
+        try (Connection connection = dataSource.getConnection()) {
+            if (connection.isValid(1)) {
+                return Health.up()
+                    .withDetail("database", "Available")
+                    .withDetail("validationQuery", "SELECT 1")
+                    .build();
+            }
+        } catch (SQLException e) {
+            return Health.down()
+                .withDetail("database", "Unavailable")
+                .withDetail("error", e.getMessage())
+                .build();
+        }
+        return Health.down().withDetail("database", "Unknown").build();
+    }
+}</code></pre>
+            </div>
+        </div>
+
+        <div class="content-section">
+            <h2>Custom Metrics</h2>
+            <div class="code-block">
+                <pre><code>@Service
+public class UserService {
+
+    private final UserRepository userRepository;
+    private final MeterRegistry meterRegistry;
+    private final Counter userCreationCounter;
+    private final Timer userSearchTimer;
+
+    public UserService(UserRepository userRepository, MeterRegistry meterRegistry) {
+        this.userRepository = userRepository;
+        this.meterRegistry = meterRegistry;
+        this.userCreationCounter = Counter.builder("user.creation")
+            .description("Number of users created")
+            .register(meterRegistry);
+        this.userSearchTimer = Timer.builder("user.search")
+            .description("Time taken to search users")
+            .register(meterRegistry);
+    }
+
+    public User createUser(CreateUserRequest request) {
+        userCreationCounter.increment();
+        // Create user logic...
+        return user;
+    }
+
+    public List&lt;User&gt; searchUsers(String query) {
+        return userSearchTimer.recordCallable(() -&gt; {
+            // Search logic...
+            return userRepository.findByUsernameContaining(query);
+        });
+    }
+}</code></pre>
+            </div>
+        </div>
+
+        <div class="content-section">
+            <h2>Application Information</h2>
+            <div class="code-block">
+                <pre><code># application.properties
+info.app.name=User Management API
+info.app.description=Spring Boot Level 2 Course Project
+info.app.version=@project.version@
+info.app.encoding=@project.build.sourceEncoding@
+info.app.java.version=@java.version@
+
+# Git information (requires git-commit-id-plugin)
+management.info.git.mode=full</code></pre>
+            </div>
+        </div>
+
+        <div class="content-section">
+            <h2>Advanced IDE Debugging</h2>
+            <h3>Debugging Techniques:</h3>
+            <ul>
+                <li><strong>Breakpoints:</strong> Pause execution at specific lines</li>
+                <li><strong>Conditional Breakpoints:</strong> Break only when conditions are met</li>
+                <li><strong>Expression Evaluation:</strong> Evaluate variables and expressions during debugging</li>
+                <li><strong>Step Through:</strong> Step into, over, and out of methods</li>
+            </ul>
+
+            <div class="code-block">
+                <pre><code>@RestController
+@RequestMapping("/api/users")
+public class UserController {
+
+    @Autowired
+    private UserService userService;
+
+    @GetMapping("/{id}")
+    public ResponseEntity&lt;User&gt; getUserById(@PathVariable Long id) {
+        // Set breakpoint here to debug request processing
+        User user = userService.findById(id);
+        
+        // Conditional breakpoint: id &gt; 100
+        if (user == null) {
+            return ResponseEntity.notFound().build();
+        }
+        
+        return ResponseEntity.ok(user);
+    }
+}</code></pre>
+            </div>
+        </div>
+
+        <div class="content-section">
+            <h2>Logging Configuration</h2>
+            <div class="code-block">
+                <pre><code># application.properties
+logging.level.com.example.userapi=DEBUG
+logging.level.org.springframework.web=DEBUG
+logging.level.org.springframework.security=DEBUG
+logging.pattern.console=%d{yyyy-MM-dd HH:mm:ss} - %msg%n
+logging.file.name=logs/application.log</code></pre>
+            </div>
+
+            <h3>Structured Logging:</h3>
+            <div class="code-block">
+                <pre><code>@Service
+public class UserService {
+
+    private static final Logger logger = LoggerFactory.getLogger(UserService.class);
+
+    public User createUser(CreateUserRequest request) {
+        logger.info("Creating user with username: {}", request.getUsername());
+        
+        try {
+            User user = new User();
+            user.setUsername(request.getUsername());
+            user.setEmail(request.getEmail());
+            
+            User savedUser = userRepository.save(user);
+            logger.info("Successfully created user with ID: {}", savedUser.getId());
+            
+            return savedUser;
+        } catch (Exception e) {
+            logger.error("Failed to create user: {}", e.getMessage(), e);
+            throw new UserCreationException("Could not create user", e);
+        }
+    }
+}</code></pre>
+            </div>
+        </div>
+
+        <div class="content-section">
+            <h2>Performance Monitoring</h2>
+            <div class="code-block">
+                <pre><code>@RestController
+public class UserController {
+
+    @Autowired
+    private MeterRegistry meterRegistry;
+
+    @GetMapping("/api/users")
+    @Timed(name = "user.list", description = "Time taken to list users")
+    public List&lt;User&gt; getAllUsers() {
+        return userService.findAll();
+    }
+
+    @PostMapping("/api/users")
+    public ResponseEntity&lt;User&gt; createUser(@RequestBody CreateUserRequest request) {
+        Timer.Sample sample = Timer.start(meterRegistry);
+        try {
+            User user = userService.createUser(request);
+            return ResponseEntity.status(HttpStatus.CREATED).body(user);
+        } finally {
+            sample.stop(Timer.builder("user.creation.time")
+                .description("User creation time")
+                .register(meterRegistry));
+        }
+    }
+}</code></pre>
+            </div>
+        </div>
+
+        <div class="content-section">
+            <h2>Security for Actuator Endpoints</h2>
+            <div class="code-block">
+                <pre><code>@Configuration
+@EnableWebSecurity
+public class ActuatorSecurityConfig {
+
+    @Bean
+    public SecurityFilterChain actuatorSecurityFilterChain(HttpSecurity http) throws Exception {
+        http.requestMatcher(EndpointRequest.toAnyEndpoint())
+            .authorizeHttpRequests(auth -&gt; auth
+                .requestMatchers(EndpointRequest.to("health", "info")).permitAll()
+                .requestMatchers(EndpointRequest.toAnyEndpoint()).hasRole("ADMIN")
+            )
+            .httpBasic(Customizer.withDefaults());
+        
+        return http.build();
+    }
+}</code></pre>
+            </div>
+        </div>
+
+        <div class="content-section">
+            <h2>Troubleshooting Common Issues</h2>
+            <h3>Database Connection Issues:</h3>
+            <div class="code-block">
+                <pre><code># Check database connectivity
+curl http://localhost:8080/actuator/health
+
+# Response for healthy database:
+{
+  "status": "UP",
+  "components": {
+    "db": {
+      "status": "UP",
+      "details": {
+        "database": "PostgreSQL",
+        "validationQuery": "isValid()"
+      }
+    }
+  }
+}</code></pre>
+            </div>
+
+            <h3>Memory Issues:</h3>
+            <div class="code-block">
+                <pre><code># Check memory metrics
+curl http://localhost:8080/actuator/metrics/jvm.memory.used
+
+# JVM arguments for debugging
+-Xms512m -Xmx1024m -XX:+HeapDumpOnOutOfMemoryError</code></pre>
+            </div>
+        </div>
+
+        <div class="content-section">
+            <h2>Best Practices</h2>
+            <ul>
+                <li><strong>Secure Actuator:</strong> Protect sensitive endpoints in production</li>
+                <li><strong>Custom Health Checks:</strong> Monitor critical dependencies</li>
+                <li><strong>Meaningful Metrics:</strong> Track business-relevant metrics</li>
+                <li><strong>Structured Logging:</strong> Use consistent log formats</li>
+                <li><strong>Performance Monitoring:</strong> Track response times and throughput</li>
+                <li><strong>Alerting:</strong> Set up alerts for critical metrics</li>
+            </ul>
+        </div>
+
+        <div class="key-points">
+            <h3>Key Takeaways</h3>
+            <ul>
+                <li>Spring Boot Actuator provides essential monitoring capabilities</li>
+                <li>Custom health indicators help monitor application dependencies</li>
+                <li>Metrics and logging are crucial for production troubleshooting</li>
+                <li>IDE debugging tools are powerful for development-time issues</li>
+                <li>Security should be applied to actuator endpoints in production</li>
+            </ul>
+        </div>
+    </div>
+
+    <script src="../shared/contentfunctions.js"></script>
+</body>
+</html>

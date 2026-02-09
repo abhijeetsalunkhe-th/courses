@@ -1,0 +1,294 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" dir="ltr" lang="en-US">
+<head>
+    <title>Database Migration Strategy</title>
+    <style type="text/css" media="screen">
+		@import url( ../shared/style.css );
+	</style>
+	<script src="../shared/scormfunctions.js" type="text/javascript"></script>
+	<script src="../shared/contentfunctions.js" type="text/javascript"></script>
+</head>
+<body>
+<h1>Database Migration Strategy</h1>
+
+<h2>Why Database Migrations?</h2>
+<p>In production environments, database schema changes must be managed carefully to ensure:</p>
+<ul>
+    <li><strong>Consistency:</strong> All environments have the same schema version</li>
+    <li><strong>Traceability:</strong> Track what changes were applied and when</li>
+    <li><strong>Rollback Capability:</strong> Ability to revert problematic changes</li>
+    <li><strong>Team Collaboration:</strong> Multiple developers can work on schema changes</li>
+    <li><strong>Zero Downtime:</strong> Apply changes without service interruption</li>
+</ul>
+
+<h2>Flyway vs Liquibase</h2>
+<table>
+    <tr>
+        <th>Feature</th>
+        <th>Flyway</th>
+        <th>Liquibase</th>
+    </tr>
+    <tr>
+        <td class="rowheader">Configuration</td>
+        <td>Simple, convention-based</td>
+        <td>More configuration options</td>
+    </tr>
+    <tr>
+        <td class="rowheader">Script Format</td>
+        <td>SQL files</td>
+        <td>SQL, XML, YAML, JSON</td>
+    </tr>
+    <tr>
+        <td class="rowheader">Learning Curve</td>
+        <td>Easier to learn</td>
+        <td>More complex but powerful</td>
+    </tr>
+    <tr>
+        <td class="rowheader">Database Support</td>
+        <td>Wide database support</td>
+        <td>Extensive database support</td>
+    </tr>
+</table>
+
+<h2>Setting Up Flyway</h2>
+
+<h3>Add Flyway Dependency</h3>
+<blockquote>
+&lt;!-- Maven --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.flywaydb&lt;/groupId&gt;
+    &lt;artifactId&gt;flyway-core&lt;/artifactId&gt;
+&lt;/dependency&gt;
+
+&lt;!-- Gradle --&gt;
+implementation 'org.flywaydb:flyway-core'
+</blockquote>
+
+<h3>Flyway Configuration</h3>
+<blockquote>
+# application.yml
+spring:
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    validate-on-migrate: true
+    clean-disabled: true  # Prevent accidental data loss
+</blockquote>
+
+<h2>Migration File Naming Convention</h2>
+<p>Flyway uses a strict naming convention for migration files:</p>
+
+<blockquote>
+V{version}__{description}.sql
+
+Examples:
+V1__create_user_table.sql
+V2__add_email_column_to_user.sql
+V3__create_order_table.sql
+V4__add_index_on_user_email.sql
+</blockquote>
+
+<h2>Migration File Structure</h2>
+<p>Place migration files in <strong>src/main/resources/db/migration/</strong>:</p>
+
+<blockquote>
+src/
+└── main/
+    └── resources/
+        └── db/
+            └── migration/
+                ├── V1__create_user_table.sql
+                ├── V2__add_email_column_to_user.sql
+                └── V3__create_order_table.sql
+</blockquote>
+
+<h2>Sample Migration Files</h2>
+
+<h3>V1__create_user_table.sql</h3>
+<blockquote>
+CREATE TABLE users (
+    id BIGSERIAL PRIMARY KEY,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_users_email ON users(email);
+CREATE INDEX idx_users_username ON users(username);
+</blockquote>
+
+<h3>V2__add_user_status.sql</h3>
+<blockquote>
+ALTER TABLE users 
+ADD COLUMN status VARCHAR(20) DEFAULT 'ACTIVE' NOT NULL;
+
+CREATE INDEX idx_users_status ON users(status);
+
+-- Update existing users to have ACTIVE status
+UPDATE users SET status = 'ACTIVE' WHERE status IS NULL;
+</blockquote>
+
+<h3>V3__create_order_table.sql</h3>
+<blockquote>
+CREATE TABLE orders (
+    id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    order_number VARCHAR(50) NOT NULL UNIQUE,
+    total_amount DECIMAL(10,2) NOT NULL,
+    status VARCHAR(20) DEFAULT 'PENDING' NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    CONSTRAINT fk_orders_user_id 
+        FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+CREATE INDEX idx_orders_user_id ON orders(user_id);
+CREATE INDEX idx_orders_status ON orders(status);
+CREATE INDEX idx_orders_created_at ON orders(created_at);
+</blockquote>
+
+<h2>Migration Best Practices</h2>
+
+<h3>1. Never Modify Existing Migrations</h3>
+<p>Once a migration has been applied to any environment, never modify it. Create a new migration instead.</p>
+
+<h3>2. Make Migrations Idempotent</h3>
+<blockquote>
+-- Bad: Will fail if column already exists
+ALTER TABLE users ADD COLUMN phone VARCHAR(20);
+
+-- Good: Check if column exists first
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_name = 'users' AND column_name = 'phone'
+    ) THEN
+        ALTER TABLE users ADD COLUMN phone VARCHAR(20);
+    END IF;
+END $$;
+</blockquote>
+
+<h3>3. Use Descriptive Names</h3>
+<blockquote>
+-- Bad
+V5__update.sql
+
+-- Good
+V5__add_user_profile_table_with_foreign_key.sql
+</blockquote>
+
+<h3>4. Test Migrations</h3>
+<ul>
+    <li>Test on a copy of production data</li>
+    <li>Measure migration execution time</li>
+    <li>Verify data integrity after migration</li>
+    <li>Test rollback procedures</li>
+</ul>
+
+<h2>Handling Data Migrations</h2>
+<p>Sometimes you need to migrate data along with schema changes:</p>
+
+<blockquote>
+-- V6__migrate_user_names.sql
+-- Split full_name into first_name and last_name
+
+-- Add new columns
+ALTER TABLE users 
+ADD COLUMN first_name VARCHAR(50),
+ADD COLUMN last_name VARCHAR(50);
+
+-- Migrate existing data
+UPDATE users 
+SET 
+    first_name = SPLIT_PART(full_name, ' ', 1),
+    last_name = CASE 
+        WHEN POSITION(' ' IN full_name) > 0 
+        THEN SUBSTRING(full_name FROM POSITION(' ' IN full_name) + 1)
+        ELSE ''
+    END
+WHERE full_name IS NOT NULL;
+
+-- Make new columns NOT NULL after data migration
+ALTER TABLE users 
+ALTER COLUMN first_name SET NOT NULL,
+ALTER COLUMN last_name SET NOT NULL;
+
+-- Drop old column (consider keeping for a few releases)
+-- ALTER TABLE users DROP COLUMN full_name;
+</blockquote>
+
+<h2>Environment-Specific Migrations</h2>
+<p>Use Flyway callbacks for environment-specific operations:</p>
+
+<blockquote>
+# application-prod.yml
+spring:
+  flyway:
+    locations: classpath:db/migration,classpath:db/migration/prod
+
+# application-dev.yml  
+spring:
+  flyway:
+    locations: classpath:db/migration,classpath:db/migration/dev
+</blockquote>
+
+<h2>Monitoring and Troubleshooting</h2>
+
+<h3>Flyway Schema History Table</h3>
+<p>Flyway creates a <strong>flyway_schema_history</strong> table to track applied migrations:</p>
+
+<blockquote>
+SELECT * FROM flyway_schema_history ORDER BY installed_on DESC;
+</blockquote>
+
+<h3>Common Issues and Solutions</h3>
+<table>
+    <tr>
+        <th>Issue</th>
+        <th>Cause</th>
+        <th>Solution</th>
+    </tr>
+    <tr>
+        <td class="rowheader">Migration failed</td>
+        <td>SQL syntax error</td>
+        <td>Fix SQL, mark as resolved, re-run</td>
+    </tr>
+    <tr>
+        <td class="rowheader">Checksum mismatch</td>
+        <td>Migration file modified</td>
+        <td>Repair schema history or revert changes</td>
+    </tr>
+    <tr>
+        <td class="rowheader">Out of order migration</td>
+        <td>Lower version added later</td>
+        <td>Enable out-of-order or renumber</td>
+    </tr>
+</table>
+
+<h2>Production Deployment Strategy</h2>
+<ol>
+    <li><strong>Backup Database:</strong> Always backup before migrations</li>
+    <li><strong>Test Migration:</strong> Run on staging environment first</li>
+    <li><strong>Maintenance Window:</strong> Schedule during low-traffic periods</li>
+    <li><strong>Monitor Performance:</strong> Watch for long-running migrations</li>
+    <li><strong>Rollback Plan:</strong> Have a rollback strategy ready</li>
+</ol>
+
+<h2>Advanced Flyway Features</h2>
+<ul>
+    <li><strong>Callbacks:</strong> Execute custom code before/after migrations</li>
+    <li><strong>Placeholders:</strong> Use variables in migration scripts</li>
+    <li><strong>Repeatable Migrations:</strong> For views, procedures, functions</li>
+    <li><strong>Undo Migrations:</strong> Rollback capability (Flyway Pro)</li>
+</ul>
+
+<script type="text/javascript">
+// No promotional content
+</script>
+</body>
+</html>

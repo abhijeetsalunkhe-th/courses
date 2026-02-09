@@ -1,0 +1,70 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" dir="ltr" lang="en-US">
+<head>
+    <title>Using WebClient (Recommended)</title>
+    <style type="text/css" media="screen">
+		@import url( ../shared/style.css );
+	</style>
+	<script src="../shared/scormfunctions.js" type="text/javascript"></script>
+	<script src="../shared/contentfunctions.js" type="text/javascript"></script>
+</head>
+<body>
+<h1>Using WebClient (Recommended)</h1>
+
+<h2>WebClient Configuration</h2>
+<blockquote>
+@Service
+public class ExternalService {
+
+    private final WebClient webClient;
+
+    public ExternalService(WebClient.Builder webClientBuilder) {
+        this.webClient = webClientBuilder
+            .baseUrl("http://external-api.com")
+            .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+            .build();
+    }
+
+    public ExternalData fetchExternalData(String itemId) {
+        return webClient.get()
+            .uri("/items/{id}", itemId) 
+            .retrieve() 
+            .bodyToMono(ExternalData.class)
+            .block(); // Synchronous call
+    }
+}
+</blockquote>
+
+<h2>WebClient Features</h2>
+<ul>
+    <li><strong>Non-blocking:</strong> Reactive programming support</li>
+    <li><strong>Flexible:</strong> Supports both sync and async operations</li>
+    <li><strong>Configurable:</strong> Timeouts, headers, error handling</li>
+    <li><strong>Modern:</strong> Built on Spring WebFlux</li>
+</ul>
+
+<h2>Making HTTP Requests</h2>
+<blockquote>
+// GET request
+public Mono&lt;User&gt; getUser(Long id) {
+    return webClient.get()
+        .uri("/users/{id}", id)
+        .retrieve()
+        .bodyToMono(User.class);
+}
+
+// POST request
+public Mono&lt;User&gt; createUser(User user) {
+    return webClient.post()
+        .uri("/users")
+        .bodyValue(user)
+        .retrieve()
+        .bodyToMono(User.class);
+}
+</blockquote>
+
+<script type="text/javascript">
+// No promotional content
+</script>
+</body>
+</html>

@@ -1,0 +1,504 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" dir="ltr" lang="en-US">
+<head>
+    <title>Global Exception Handling</title>
+    <style type="text/css" media="screen">
+		@import url( ../shared/style.css );
+	</style>
+	<script src="../shared/scormfunctions.js" type="text/javascript"></script>
+	<script src="../shared/contentfunctions.js" type="text/javascript"></script>
+</head>
+<body>
+<h1>Global Exception Handling</h1>
+
+<h2>Why Global Exception Handling?</h2>
+<p>Without proper exception handling, your API might return:</p>
+<ul>
+    <li><strong>Inconsistent Responses:</strong> Different error formats across endpoints</li>
+    <li><strong>Sensitive Information:</strong> Stack traces exposed to clients</li>
+    <li><strong>Poor User Experience:</strong> Cryptic error messages</li>
+    <li><strong>Security Risks:</strong> Internal system details leaked</li>
+</ul>
+
+<p>Global exception handling provides:</p>
+<ul>
+    <li><strong>Consistency:</strong> Uniform error response format</li>
+    <li><strong>Security:</strong> Controlled information disclosure</li>
+    <li><strong>Maintainability:</strong> Centralized error handling logic</li>
+    <li><strong>User Experience:</strong> Clear, actionable error messages</li>
+</ul>
+
+<h2>@ControllerAdvice Annotation</h2>
+<p>The <strong>@ControllerAdvice</strong> annotation allows you to handle exceptions globally across all controllers in your application.</p>
+
+<div class="code-block">
+<pre><code>@ControllerAdvice
+public class GlobalExceptionHandler {
+    
+    private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+    
+    // Handle validation errors
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity&lt;ErrorResponse&gt; handleValidationExceptions(
+            MethodArgumentNotValidException ex) {
+        
+        logger.warn("Validation error: {}", ex.getMessage());
+        
+        Map&lt;String, String&gt; fieldErrors = new HashMap&lt;&gt;();
+        ex.getBindingResult().getFieldErrors().forEach(error -&gt; 
+            fieldErrors.put(error.getField(), error.getDefaultMessage())
+        );
+        
+        ErrorResponse errorResponse = ErrorResponse.builder()
+            .status(HttpStatus.BAD_REQUEST.value())
+            .error("Validation Failed")
+            .message("Request validation failed")
+            .timestamp(LocalDateTime.now())
+            .fieldErrors(fieldErrors)
+            .build();
+        
+        return new ResponseEntity&lt;&gt;(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+}
+</code></pre>
+</div>
+
+<h2>Standard Error Response Format</h2>
+<p>Create a consistent error response structure:</p>
+
+<blockquote>
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class ErrorResponse {
+    
+    private int status;
+    private String error;
+    private String message;
+    private String path;
+    private LocalDateTime timestamp;
+    private Map&lt;String, String&gt; fieldErrors;
+    private String traceId;
+    
+    // Constructors
+    public ErrorResponse() {
+        this.timestamp = LocalDateTime.now();
+    }
+    
+    public ErrorResponse(int status, String error, String message) {
+        this();
+        this.status = status;
+        this.error = error;
+        this.message = message;
+    }
+    
+    // Builder pattern for convenience
+    public static ErrorResponseBuilder builder() {
+        return new ErrorResponseBuilder();
+    }
+    
+    // Getters and setters
+    // ... (standard getters and setters)
+    
+    public static class ErrorResponseBuilder {
+        private ErrorResponse errorResponse = new ErrorResponse();
+        
+        public ErrorResponseBuilder status(int status) {
+            errorResponse.status = status;
+            return this;
+        }
+        
+        public ErrorResponseBuilder error(String error) {
+            errorResponse.error = error;
+            return this;
+        }
+        
+        public ErrorResponseBuilder message(String message) {
+            errorResponse.message = message;
+            return this;
+        }
+        
+        public ErrorResponseBuilder path(String path) {
+            errorResponse.path = path;
+            return this;
+        }
+        
+        public ErrorResponseBuilder fieldErrors(Map&lt;String, String&gt; fieldErrors) {
+            errorResponse.fieldErrors = fieldErrors;
+            return this;
+        }
+        
+        public ErrorResponse build() {
+            return errorResponse;
+        }
+    }
+}
+</blockquote>
+
+<h2>Comprehensive Exception Handler</h2>
+<blockquote>
+@ControllerAdvice
+@Slf4j
+public class GlobalExceptionHandler {
+    
+    // Handle validation errors (Bean Validation)
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity&lt;ErrorResponse&gt; handleValidationExceptions(
+            MethodArgumentNotValidException ex, HttpServletRequest request) {
+        
+        log.warn("Validation error on path {}: {}", request.getRequestURI(), ex.getMessage());
+        
+        Map&lt;String, String&gt; fieldErrors = new HashMap&lt;&gt;();
+        ex.getBindingResult().getFieldErrors().forEach(error -&gt; 
+            fieldErrors.put(error.getField(), error.getDefaultMessage())
+        );
+        
+        ErrorResponse errorResponse = ErrorResponse.builder()
+            .status(HttpStatus.BAD_REQUEST.value())
+            .error("Validation Failed")
+            .message("Request validation failed")
+            .path(request.getRequestURI())
+            .fieldErrors(fieldErrors)
+            .build();
+        
+        return new ResponseEntity&lt;&gt;(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+    
+    // Handle resource not found
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity&lt;ErrorResponse&gt; handleNotFoundException(
+            ResourceNotFoundException ex, HttpServletRequest request) {
+        
+        log.warn("Resource not found on path {}: {}", request.getRequestURI(), ex.getMessage());
+        
+        ErrorResponse errorResponse = ErrorResponse.builder()
+            .status(HttpStatus.NOT_FOUND.value())
+            .error("Resource Not Found")
+            .message(ex.getMessage())
+            .path(request.getRequestURI())
+            .build();
+        
+        return new ResponseEntity&lt;&gt;(errorResponse, HttpStatus.NOT_FOUND);
+    }
+    
+    // Handle business logic exceptions
+    @ExceptionHandler(BusinessException.class)
+    public ResponseEntity&lt;ErrorResponse&gt; handleBusinessException(
+            BusinessException ex, HttpServletRequest request) {
+        
+        log.warn("Business exception on path {}: {}", request.getRequestURI(), ex.getMessage());
+        
+        ErrorResponse errorResponse = ErrorResponse.builder()
+            .status(HttpStatus.BAD_REQUEST.value())
+            .error("Business Rule Violation")
+            .message(ex.getMessage())
+            .path(request.getRequestURI())
+            .build();
+        
+        return new ResponseEntity&lt;&gt;(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+    
+    // Handle access denied
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity&lt;ErrorResponse&gt; handleAccessDeniedException(
+            AccessDeniedException ex, HttpServletRequest request) {
+        
+        log.warn("Access denied on path {}: {}", request.getRequestURI(), ex.getMessage());
+        
+        ErrorResponse errorResponse = ErrorResponse.builder()
+            .status(HttpStatus.FORBIDDEN.value())
+            .error("Access Denied")
+            .message("You don't have permission to access this resource")
+            .path(request.getRequestURI())
+            .build();
+        
+        return new ResponseEntity&lt;&gt;(errorResponse, HttpStatus.FORBIDDEN);
+    }
+    
+    // Handle method argument type mismatch
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity&lt;ErrorResponse&gt; handleTypeMismatchException(
+            MethodArgumentTypeMismatchException ex, HttpServletRequest request) {
+        
+        log.warn("Type mismatch on path {}: {}", request.getRequestURI(), ex.getMessage());
+        
+        String message = String.format("Invalid value '%s' for parameter '%s'. Expected type: %s", 
+            ex.getValue(), ex.getName(), ex.getRequiredType().getSimpleName());
+        
+        ErrorResponse errorResponse = ErrorResponse.builder()
+            .status(HttpStatus.BAD_REQUEST.value())
+            .error("Invalid Parameter")
+            .message(message)
+            .path(request.getRequestURI())
+            .build();
+        
+        return new ResponseEntity&lt;&gt;(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+    
+    // Handle HTTP message not readable (malformed JSON)
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity&lt;ErrorResponse&gt; handleMessageNotReadableException(
+            HttpMessageNotReadableException ex, HttpServletRequest request) {
+        
+        log.warn("Message not readable on path {}: {}", request.getRequestURI(), ex.getMessage());
+        
+        ErrorResponse errorResponse = ErrorResponse.builder()
+            .status(HttpStatus.BAD_REQUEST.value())
+            .error("Malformed Request")
+            .message("Request body is malformed or missing")
+            .path(request.getRequestURI())
+            .build();
+        
+        return new ResponseEntity&lt;&gt;(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+    
+    // Handle constraint violations (database constraints)
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity&lt;ErrorResponse&gt; handleDataIntegrityViolationException(
+            DataIntegrityViolationException ex, HttpServletRequest request) {
+        
+        log.error("Data integrity violation on path {}: {}", request.getRequestURI(), ex.getMessage());
+        
+        String message = "Data integrity constraint violated";
+        
+        // Check for common constraint violations
+        if (ex.getMessage().contains("unique")) {
+            message = "A record with this information already exists";
+        } else if (ex.getMessage().contains("foreign key")) {
+            message = "Referenced resource does not exist";
+        }
+        
+        ErrorResponse errorResponse = ErrorResponse.builder()
+            .status(HttpStatus.CONFLICT.value())
+            .error("Data Conflict")
+            .message(message)
+            .path(request.getRequestURI())
+            .build();
+        
+        return new ResponseEntity&lt;&gt;(errorResponse, HttpStatus.CONFLICT);
+    }
+    
+    // Handle all other exceptions
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity&lt;ErrorResponse&gt; handleGenericException(
+            Exception ex, HttpServletRequest request) {
+        
+        log.error("Unexpected error on path {}: ", request.getRequestURI(), ex);
+        
+        ErrorResponse errorResponse = ErrorResponse.builder()
+            .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+            .error("Internal Server Error")
+            .message("An unexpected error occurred")
+            .path(request.getRequestURI())
+            .build();
+        
+        return new ResponseEntity&lt;&gt;(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+}
+</blockquote>
+
+<h2>Custom Exception Classes</h2>
+<p>Create specific exception classes for different error scenarios:</p>
+
+<blockquote>
+// Base exception class
+public abstract class ApplicationException extends RuntimeException {
+    
+    protected ApplicationException(String message) {
+        super(message);
+    }
+    
+    protected ApplicationException(String message, Throwable cause) {
+        super(message, cause);
+    }
+}
+
+// Resource not found exception
+public class ResourceNotFoundException extends ApplicationException {
+    
+    public ResourceNotFoundException(String resourceName, Object id) {
+        super(String.format("%s with id '%s' not found", resourceName, id));
+    }
+    
+    public ResourceNotFoundException(String message) {
+        super(message);
+    }
+}
+
+// Business logic exception
+public class BusinessException extends ApplicationException {
+    
+    public BusinessException(String message) {
+        super(message);
+    }
+    
+    public BusinessException(String message, Throwable cause) {
+        super(message, cause);
+    }
+}
+
+// Validation exception for custom business rules
+public class ValidationException extends ApplicationException {
+    
+    private final Map&lt;String, String&gt; fieldErrors;
+    
+    public ValidationException(String message) {
+        super(message);
+        this.fieldErrors = new HashMap&lt;&gt;();
+    }
+    
+    public ValidationException(Map&lt;String, String&gt; fieldErrors) {
+        super("Validation failed");
+        this.fieldErrors = fieldErrors;
+    }
+    
+    public Map&lt;String, String&gt; getFieldErrors() {
+        return fieldErrors;
+    }
+}
+</blockquote>
+
+<h2>Using Exceptions in Services</h2>
+<blockquote>
+@Service
+public class UserService {
+    
+    @Autowired
+    private UserRepository userRepository;
+    
+    public User findById(Long id) {
+        return userRepository.findById(id)
+            .orElseThrow(() -&gt; new ResourceNotFoundException("User", id));
+    }
+    
+    public User createUser(UserCreationRequest request) {
+        // Check if username already exists
+        if (userRepository.existsByUsername(request.getUsername())) {
+            throw new BusinessException("Username '" + request.getUsername() + "' is already taken");
+        }
+        
+        // Check if email already exists
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new BusinessException("Email '" + request.getEmail() + "' is already registered");
+        }
+        
+        User user = new User();
+        user.setUsername(request.getUsername());
+        user.setEmail(request.getEmail());
+        
+        return userRepository.save(user);
+    }
+    
+    public void deleteUser(Long id) {
+        User user = findById(id); // This will throw ResourceNotFoundException if not found
+        
+        // Business rule: Cannot delete users with active orders
+        if (user.hasActiveOrders()) {
+            throw new BusinessException("Cannot delete user with active orders");
+        }
+        
+        userRepository.delete(user);
+    }
+}
+</blockquote>
+
+<h2>Environment-Specific Error Handling</h2>
+<p>Show different levels of detail based on the environment:</p>
+
+<blockquote>
+@ControllerAdvice
+public class GlobalExceptionHandler {
+    
+    @Value("${app.show-error-details:false}")
+    private boolean showErrorDetails;
+    
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity&lt;ErrorResponse&gt; handleGenericException(
+            Exception ex, HttpServletRequest request) {
+        
+        log.error("Unexpected error on path {}: ", request.getRequestURI(), ex);
+        
+        ErrorResponse.ErrorResponseBuilder builder = ErrorResponse.builder()
+            .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+            .error("Internal Server Error")
+            .path(request.getRequestURI());
+        
+        if (showErrorDetails) {
+            // Development environment - show detailed error
+            builder.message(ex.getMessage());
+        } else {
+            // Production environment - generic message
+            builder.message("An unexpected error occurred");
+        }
+        
+        return new ResponseEntity&lt;&gt;(builder.build(), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+}
+
+# application-dev.yml
+app:
+  show-error-details: true
+
+# application-prod.yml  
+app:
+  show-error-details: false
+</blockquote>
+
+<h2>Testing Exception Handling</h2>
+<blockquote>
+@WebMvcTest(UserController.class)
+class UserControllerExceptionTest {
+    
+    @Autowired
+    private MockMvc mockMvc;
+    
+    @MockBean
+    private UserService userService;
+    
+    @Test
+    void shouldReturnNotFoundWhenUserDoesNotExist() throws Exception {
+        // Given
+        when(userService.findById(999L))
+            .thenThrow(new ResourceNotFoundException("User", 999L));
+        
+        // When & Then
+        mockMvc.perform(get("/api/users/999"))
+            .andExpect(status().isNotFound())
+            .andExpect(jsonPath("$.status").value(404))
+            .andExpect(jsonPath("$.error").value("Resource Not Found"))
+            .andExpect(jsonPath("$.message").value("User with id '999' not found"));
+    }
+    
+    @Test
+    void shouldReturnBadRequestForBusinessException() throws Exception {
+        // Given
+        UserCreationRequest request = new UserCreationRequest();
+        request.setUsername("existinguser");
+        
+        when(userService.createUser(any(UserCreationRequest.class)))
+            .thenThrow(new BusinessException("Username 'existinguser' is already taken"));
+        
+        // When & Then
+        mockMvc.perform(post("/api/users")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.status").value(400))
+            .andExpect(jsonPath("$.error").value("Business Rule Violation"));
+    }
+}
+</blockquote>
+
+<h2>Best Practices</h2>
+<ul>
+    <li><strong>Consistent Format:</strong> Use the same error response structure across all endpoints</li>
+    <li><strong>Appropriate HTTP Status:</strong> Use correct HTTP status codes for different error types</li>
+    <li><strong>Security:</strong> Don't expose sensitive information in error messages</li>
+    <li><strong>Logging:</strong> Log errors appropriately for debugging and monitoring</li>
+    <li><strong>User-Friendly Messages:</strong> Provide clear, actionable error messages</li>
+    <li><strong>Environment Awareness:</strong> Show different error details in development vs production</li>
+</ul>
+
+<script type="text/javascript">
+// No promotional content
+</script>
+</body>
+</html>

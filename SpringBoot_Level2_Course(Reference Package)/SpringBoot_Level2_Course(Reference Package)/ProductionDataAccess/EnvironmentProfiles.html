@@ -1,0 +1,288 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" dir="ltr" lang="en-US">
+<head>
+    <title>Managing Environments with Profiles</title>
+    <style type="text/css" media="screen">
+		@import url( ../shared/style.css );
+	</style>
+	<script src="../shared/scormfunctions.js" type="text/javascript"></script>
+	<script src="../shared/contentfunctions.js" type="text/javascript"></script>
+</head>
+<body>
+<h1>Managing Environments with Profiles</h1>
+
+<h2>What are Spring Profiles?</h2>
+<p><strong>Spring Profiles</strong> provide a way to segregate parts of your application configuration and make it available only in certain environments. This allows you to have different configurations for development, testing, staging, and production environments.</p>
+
+<h2>Profile-Specific Configuration Files</h2>
+<p>Spring Boot follows a naming convention for profile-specific configuration files:</p>
+
+<table>
+    <tr>
+        <th>File Name</th>
+        <th>Environment</th>
+        <th>Purpose</th>
+    </tr>
+    <tr>
+        <td class="rowheader">application.yml</td>
+        <td>Default</td>
+        <td>Base configuration for all environments</td>
+    </tr>
+    <tr>
+        <td class="rowheader">application-dev.yml</td>
+        <td>Development</td>
+        <td>Development-specific overrides</td>
+    </tr>
+    <tr>
+        <td class="rowheader">application-test.yml</td>
+        <td>Testing</td>
+        <td>Testing environment configuration</td>
+    </tr>
+    <tr>
+        <td class="rowheader">application-prod.yml</td>
+        <td>Production</td>
+        <td>Production environment configuration</td>
+    </tr>
+</table>
+
+<h2>Development Profile Configuration</h2>
+<p><strong>application-dev.yml</strong> example:</p>
+
+<blockquote>
+# Development Environment Configuration
+spring:
+  datasource:
+    url: jdbc:h2:mem:devdb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: 
+  
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+  
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+logging:
+  level:
+    org.springframework.web: DEBUG
+    org.hibernate.SQL: DEBUG
+</blockquote>
+
+<h2>Production Profile Configuration</h2>
+<p><strong>application-prod.yml</strong> example:</p>
+
+<blockquote>
+# Production Environment Configuration
+spring:
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:myapp}
+    username: ${DB_USERNAME:myapp_user}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      idle-timeout: 300000
+      max-lifetime: 600000
+      connection-timeout: 30000
+  
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+logging:
+  level:
+    org.springframework.web: WARN
+    org.hibernate.SQL: WARN
+  file:
+    name: /var/log/myapp/application.log
+</blockquote>
+
+<h2>Activating Profiles</h2>
+
+<h3>Command Line Activation</h3>
+<blockquote>
+# Activate development profile
+java -jar myapp.jar --spring.profiles.active=dev
+
+# Activate production profile
+java -jar myapp.jar --spring.profiles.active=prod
+
+# Activate multiple profiles
+java -jar myapp.jar --spring.profiles.active=prod,monitoring
+</blockquote>
+
+<h3>Environment Variable Activation</h3>
+<blockquote>
+# Set environment variable
+export SPRING_PROFILES_ACTIVE=prod
+
+# Or in application.yml
+spring:
+  profiles:
+    active: dev
+</blockquote>
+
+<h3>IDE Configuration</h3>
+<p>In your IDE, you can set the active profile in run configurations:</p>
+<ul>
+    <li><strong>IntelliJ IDEA:</strong> Run Configuration → Environment Variables → SPRING_PROFILES_ACTIVE=dev</li>
+    <li><strong>Eclipse/STS:</strong> Run Configuration → Arguments → Program Arguments: --spring.profiles.active=dev</li>
+</ul>
+
+<h2>Profile-Specific Beans</h2>
+<p>You can create beans that are only active in specific profiles:</p>
+
+<blockquote>
+@Configuration
+@Profile("dev")
+public class DevelopmentConfig {
+    
+    @Bean
+    public DataSource devDataSource() {
+        return new EmbeddedDatabaseBuilder()
+            .setType(EmbeddedDatabaseType.H2)
+            .build();
+    }
+}
+
+@Configuration
+@Profile("prod")
+public class ProductionConfig {
+    
+    @Bean
+    public DataSource prodDataSource() {
+        HikariDataSource dataSource = new HikariDataSource();
+        dataSource.setJdbcUrl("jdbc:postgresql://prod-db:5432/myapp");
+        return dataSource;
+    }
+}
+</blockquote>
+
+<h2>Conditional Configuration</h2>
+<p>Use profile expressions for more complex conditions:</p>
+
+<blockquote>
+@Component
+@Profile("!prod")  // Active in all profiles except production
+public class DevToolsComponent {
+    // Development and testing utilities
+}
+
+@Component
+@Profile("prod & monitoring")  // Active only when both profiles are active
+public class ProductionMonitoring {
+    // Production monitoring features
+}
+</blockquote>
+
+<h2>Environment-Specific Properties</h2>
+<p>Use environment variables and property placeholders for sensitive data:</p>
+
+<blockquote>
+# application-prod.yml
+spring:
+  datasource:
+    url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+
+security:
+  jwt:
+    secret: ${JWT_SECRET}
+    expiration: ${JWT_EXPIRATION:86400}
+
+external:
+  api:
+    url: ${EXTERNAL_API_URL}
+    key: ${EXTERNAL_API_KEY}
+</blockquote>
+
+<h2>Testing with Profiles</h2>
+<p>Use the <strong>@ActiveProfiles</strong> annotation in tests:</p>
+
+<blockquote>
+@SpringBootTest
+@ActiveProfiles("test")
+class UserServiceTest {
+    
+    @Autowired
+    private UserService userService;
+    
+    @Test
+    void shouldCreateUser() {
+        // Test uses test profile configuration
+    }
+}
+</blockquote>
+
+<h2>Best Practices</h2>
+<ul>
+    <li><strong>Default Profile:</strong> Keep common configuration in the default application.yml</li>
+    <li><strong>Environment Variables:</strong> Use environment variables for sensitive data in production</li>
+    <li><strong>Profile Naming:</strong> Use consistent, descriptive profile names (dev, test, staging, prod)</li>
+    <li><strong>Documentation:</strong> Document required environment variables for each profile</li>
+    <li><strong>Validation:</strong> Validate that required properties are present at startup</li>
+</ul>
+
+<h2>Profile Hierarchy</h2>
+<p>Spring Boot loads configuration in this order (later sources override earlier ones):</p>
+<ol>
+    <li>application.yml (default)</li>
+    <li>application-{profile}.yml (profile-specific)</li>
+    <li>Environment variables</li>
+    <li>Command line arguments</li>
+</ol>
+
+<h2>Common Profile Patterns</h2>
+<table>
+    <tr>
+        <th>Profile</th>
+        <th>Database</th>
+        <th>Logging</th>
+        <th>Security</th>
+    </tr>
+    <tr>
+        <td class="rowheader">dev</td>
+        <td>H2 in-memory</td>
+        <td>DEBUG level</td>
+        <td>Relaxed</td>
+    </tr>
+    <tr>
+        <td class="rowheader">test</td>
+        <td>H2 or Testcontainers</td>
+        <td>WARN level</td>
+        <td>Mock authentication</td>
+    </tr>
+    <tr>
+        <td class="rowheader">staging</td>
+        <td>Production-like DB</td>
+        <td>INFO level</td>
+        <td>Production security</td>
+    </tr>
+    <tr>
+        <td class="rowheader">prod</td>
+        <td>External database</td>
+        <td>WARN/ERROR level</td>
+        <td>Full security</td>
+    </tr>
+</table>
+
+<script type="text/javascript">
+// No promotional content
+</script>
+</body>
+</html>

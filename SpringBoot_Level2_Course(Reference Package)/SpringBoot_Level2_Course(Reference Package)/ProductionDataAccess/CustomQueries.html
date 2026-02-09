@@ -1,0 +1,297 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" dir="ltr" lang="en-US">
+<head>
+    <title>Custom Queries in Spring Data JPA</title>
+    <style type="text/css" media="screen">
+		@import url( ../shared/style.css );
+	</style>
+	<script src="../shared/scormfunctions.js" type="text/javascript"></script>
+	<script src="../shared/contentfunctions.js" type="text/javascript"></script>
+</head>
+<body>
+<h1>Custom Queries in Spring Data JPA</h1>
+
+<h2>Beyond Automatic Query Methods</h2>
+<p>While Spring Data JPA provides powerful automatic query generation from method names, complex business requirements often need custom queries. Spring Data JPA supports two approaches:</p>
+<ul>
+    <li><strong>JPQL (JPA Query Language):</strong> Object-oriented query language using entity names</li>
+    <li><strong>Native SQL:</strong> Database-specific SQL queries for maximum control</li>
+</ul>
+
+<h2>JPQL (JPA Query Language)</h2>
+<p>JPQL is similar to SQL but operates on entity objects rather than database tables. It's database-independent and type-safe.</p>
+
+<h3>Basic JPQL Examples</h3>
+<blockquote>
+public interface UserRepository extends JpaRepository&lt;User, Long&gt; {
+    
+    // Find users by email (case-insensitive)
+    @Query("SELECT u FROM User u WHERE LOWER(u.email) = LOWER(:email)")
+    Optional&lt;User&gt; findUserByEmailIgnoreCase(@Param("email") String email);
+    
+    // Find users created after a specific date
+    @Query("SELECT u FROM User u WHERE u.createdAt &gt; :date ORDER BY u.createdAt DESC")
+    List&lt;User&gt; findUsersCreatedAfter(@Param("date") LocalDateTime date);
+    
+    // Count active users
+    @Query("SELECT COUNT(u) FROM User u WHERE u.status = 'ACTIVE'")
+    long countActiveUsers();
+}
+</blockquote>
+
+<h3>Complex JPQL with Joins</h3>
+<blockquote>
+public interface OrderRepository extends JpaRepository&lt;Order, Long&gt; {
+    
+    // Find orders with user information
+    @Query("SELECT o FROM Order o JOIN FETCH o.user WHERE o.status = :status")
+    List&lt;Order&gt; findOrdersWithUserByStatus(@Param("status") OrderStatus status);
+    
+    // Find users with orders above a certain amount
+    @Query("SELECT DISTINCT u FROM User u JOIN u.orders o WHERE o.totalAmount &gt; :amount")
+    List&lt;User&gt; findUsersWithOrdersAbove(@Param("amount") BigDecimal amount);
+    
+    // Get order statistics by user
+    @Query("SELECT u.username, COUNT(o), SUM(o.totalAmount) " +
+           "FROM User u LEFT JOIN u.orders o " +
+           "GROUP BY u.id, u.username")
+    List&lt;Object[]&gt; getOrderStatisticsByUser();
+}
+</blockquote>
+
+<h2>Native SQL Queries</h2>
+<p>Use native SQL when you need database-specific features or complex queries that are difficult to express in JPQL.</p>
+
+<h3>Basic Native SQL Examples</h3>
+<blockquote>
+public interface UserRepository extends JpaRepository&lt;User, Long&gt; {
+    
+    // Find inactive users (PostgreSQL specific)
+    @Query(value = "SELECT * FROM users WHERE status = 'INACTIVE' " +
+                   "AND last_login &lt; NOW() - INTERVAL '30 days'", 
+           nativeQuery = true)
+    List&lt;User&gt; findInactiveUsers();
+    
+    // Full-text search (PostgreSQL specific)
+    @Query(value = "SELECT * FROM users WHERE " +
+                   "to_tsvector('english', username || ' ' || email) " +
+                   "@@ plainto_tsquery('english', :searchTerm)", 
+           nativeQuery = true)
+    List&lt;User&gt; searchUsers(@Param("searchTerm") String searchTerm);
+    
+    // Database-specific functions
+    @Query(value = "SELECT *, EXTRACT(YEAR FROM created_at) as year " +
+                   "FROM users WHERE created_at &gt;= :startDate", 
+           nativeQuery = true)
+    List&lt;Object[]&gt; findUsersWithYear(@Param("startDate") LocalDateTime startDate);
+}
+</blockquote>
+
+<h3>Native SQL with Custom Result Mapping</h3>
+<blockquote>
+// Custom projection interface
+public interface UserSummary {
+    String getUsername();
+    String getEmail();
+    Long getOrderCount();
+    BigDecimal getTotalSpent();
+}
+
+public interface UserRepository extends JpaRepository&lt;User, Long&gt; {
+    
+    @Query(value = "SELECT u.username, u.email, " +
+                   "COUNT(o.id) as orderCount, " +
+                   "COALESCE(SUM(o.total_amount), 0) as totalSpent " +
+                   "FROM users u LEFT JOIN orders o ON u.id = o.user_id " +
+                   "GROUP BY u.id, u.username, u.email", 
+           nativeQuery = true)
+    List&lt;UserSummary&gt; findUserSummaries();
+}
+</blockquote>
+
+<h2>Dynamic Queries with Criteria API</h2>
+<p>For complex, dynamic queries, use the Criteria API or Specifications:</p>
+
+<blockquote>
+public interface UserRepository extends JpaRepository&lt;User, Long&gt;, JpaSpecificationExecutor&lt;User&gt; {
+}
+
+// Specification for dynamic queries
+public class UserSpecifications {
+    
+    public static Specification&lt;User&gt; hasStatus(String status) {
+        return (root, query, criteriaBuilder) -&gt; 
+            status == null ? null : criteriaBuilder.equal(root.get("status"), status);
+    }
+    
+    public static Specification&lt;User&gt; emailContains(String email) {
+        return (root, query, criteriaBuilder) -&gt; 
+            email == null ? null : criteriaBuilder.like(
+                criteriaBuilder.lower(root.get("email")), 
+                "%" + email.toLowerCase() + "%"
+            );
+    }
+    
+    public static Specification&lt;User&gt; createdAfter(LocalDateTime date) {
+        return (root, query, criteriaBuilder) -&gt; 
+            date == null ? null : criteriaBuilder.greaterThan(root.get("createdAt"), date);
+    }
+}
+
+// Usage in service
+@Service
+public class UserService {
+    
+    public List&lt;User&gt; findUsers(String status, String email, LocalDateTime createdAfter) {
+        Specification&lt;User&gt; spec = Specification.where(null);
+        
+        if (status != null) {
+            spec = spec.and(UserSpecifications.hasStatus(status));
+        }
+        if (email != null) {
+            spec = spec.and(UserSpecifications.emailContains(email));
+        }
+        if (createdAfter != null) {
+            spec = spec.and(UserSpecifications.createdAfter(createdAfter));
+        }
+        
+        return userRepository.findAll(spec);
+    }
+}
+</blockquote>
+
+<h2>Modifying Queries</h2>
+<p>Use <strong>@Modifying</strong> annotation for UPDATE and DELETE operations:</p>
+
+<blockquote>
+public interface UserRepository extends JpaRepository&lt;User, Long&gt; {
+    
+    @Modifying
+    @Transactional
+    @Query("UPDATE User u SET u.status = :status WHERE u.lastLogin &lt; :cutoffDate")
+    int updateInactiveUsers(@Param("status") String status, 
+                           @Param("cutoffDate") LocalDateTime cutoffDate);
+    
+    @Modifying
+    @Transactional
+    @Query("DELETE FROM User u WHERE u.status = 'DELETED' AND u.updatedAt &lt; :cutoffDate")
+    int deleteOldDeletedUsers(@Param("cutoffDate") LocalDateTime cutoffDate);
+    
+    // Native SQL modifying query
+    @Modifying
+    @Transactional
+    @Query(value = "UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = :userId", 
+           nativeQuery = true)
+    int updateLastLogin(@Param("userId") Long userId);
+}
+</blockquote>
+
+<h2>Pagination and Sorting</h2>
+<p>Custom queries support pagination and sorting:</p>
+
+<blockquote>
+public interface UserRepository extends JpaRepository&lt;User, Long&gt; {
+    
+    @Query("SELECT u FROM User u WHERE u.status = :status")
+    Page&lt;User&gt; findUsersByStatus(@Param("status") String status, Pageable pageable);
+    
+    @Query("SELECT u FROM User u WHERE u.email LIKE %:domain%")
+    Slice&lt;User&gt; findUsersByEmailDomain(@Param("domain") String domain, Pageable pageable);
+    
+    // Native query with pagination
+    @Query(value = "SELECT * FROM users WHERE created_at &gt;= :startDate", 
+           countQuery = "SELECT COUNT(*) FROM users WHERE created_at &gt;= :startDate",
+           nativeQuery = true)
+    Page&lt;User&gt; findUsersCreatedAfter(@Param("startDate") LocalDateTime startDate, 
+                                    Pageable pageable);
+}
+</blockquote>
+
+<h2>Performance Considerations</h2>
+
+<h3>Query Optimization Tips</h3>
+<ul>
+    <li><strong>Use Indexes:</strong> Ensure database indexes exist for query conditions</li>
+    <li><strong>Fetch Strategies:</strong> Use JOIN FETCH to avoid N+1 problems</li>
+    <li><strong>Projections:</strong> Select only needed columns for better performance</li>
+    <li><strong>Batch Operations:</strong> Use batch updates for bulk operations</li>
+</ul>
+
+<h3>Query Performance Monitoring</h3>
+<blockquote>
+# Enable SQL logging for development
+spring:
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        use_sql_comments: true
+        
+logging:
+  level:
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+</blockquote>
+
+<h2>Best Practices</h2>
+<table>
+    <tr>
+        <th>Practice</th>
+        <th>JPQL</th>
+        <th>Native SQL</th>
+    </tr>
+    <tr>
+        <td class="rowheader">When to Use</td>
+        <td>Database-independent queries</td>
+        <td>Database-specific features needed</td>
+    </tr>
+    <tr>
+        <td class="rowheader">Type Safety</td>
+        <td>Compile-time checking</td>
+        <td>Runtime checking only</td>
+    </tr>
+    <tr>
+        <td class="rowheader">Portability</td>
+        <td>Works across databases</td>
+        <td>Database-specific</td>
+    </tr>
+    <tr>
+        <td class="rowheader">Performance</td>
+        <td>Good for most cases</td>
+        <td>Can be optimized for specific DB</td>
+    </tr>
+</table>
+
+<h2>Testing Custom Queries</h2>
+<blockquote>
+@DataJpaTest
+class UserRepositoryTest {
+    
+    @Autowired
+    private TestEntityManager entityManager;
+    
+    @Autowired
+    private UserRepository userRepository;
+    
+    @Test
+    void shouldFindUserByEmail() {
+        // Given
+        User user = new User("john", "john@example.com");
+        entityManager.persistAndFlush(user);
+        
+        // When
+        Optional&lt;User&gt; found = userRepository.findUserByEmailIgnoreCase("JOHN@EXAMPLE.COM");
+        
+        // Then
+        assertThat(found).isPresent();
+        assertThat(found.get().getUsername()).isEqualTo("john");
+    }
+}
+</blockquote>
+
+<script type="text/javascript">
+// No promotional content
+</script>
+</body>
+</html>

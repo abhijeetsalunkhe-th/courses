@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>10.3 Testing the Web Layer (@WebMvcTest)</title>
+    <link rel="stylesheet" href="../shared/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>10.3 Testing the Web Layer (@WebMvcTest)</h1>
+        
+        <div class="content-section">
+            <h2>Overview</h2>
+            <p>The <code>@WebMvcTest</code> annotation is used to test Spring MVC controllers in isolation. It loads only the web layer components while mocking the service and repository layers.</p>
+        </div>
+
+        <div class="content-section">
+            <h2>Key Features</h2>
+            <ul>
+                <li><strong>Slice Testing:</strong> Only loads MVC-related components</li>
+                <li><strong>MockMvc:</strong> Simulates HTTP requests without starting a server</li>
+                <li><strong>Mock Dependencies:</strong> Service and repository layers are mocked</li>
+                <li><strong>JSON Testing:</strong> Built-in support for testing JSON responses</li>
+            </ul>
+        </div>
+
+        <div class="content-section">
+            <h2>Basic @WebMvcTest Example</h2>
+            <div class="code-block">
+                <pre><code>@WebMvcTest(UserController.class)
+public class UserControllerTest {
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @MockBean
+    private UserService userService;
+
+    @Test
+    void shouldReturnUserById() throws Exception {
+        // Given
+        User user = new User(1L, "alice", "alice@example.com", "password", true);
+        when(userService.findById(1L)).thenReturn(user);
+
+        // When & Then
+        mockMvc.perform(get("/api/users/1"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.id").value(1))
+            .andExpect(jsonPath("$.username").value("alice"))
+            .andExpect(jsonPath("$.email").value("alice@example.com"));
+    }
+
+    @Test
+    void shouldReturnNotFoundWhenUserDoesNotExist() throws Exception {
+        // Given
+        when(userService.findById(999L)).thenThrow(new UserNotFoundException("User not found"));
+
+        // When & Then
+        mockMvc.perform(get("/api/users/999"))
+            .andExpect(status().isNotFound());
+    }
+}</code></pre>
+            </div>
+        </div>
+
+        <div class="content-section">
+            <h2>Testing POST Requests</h2>
+            <div class="code-block">
+                <pre><code>@WebMvcTest(UserController.class)
+public class UserControllerPostTest {
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @MockBean
+    private UserService userService;
+
+    @Test
+    void shouldCreateUser() throws Exception {
+        // Given
+        CreateUserRequest request = new CreateUserRequest("newuser", "new@example.com", "password123");
+        User createdUser = new User(1L, "newuser", "new@example.com", "password123", true);
+        
+        when(userService.createUser(any(CreateUserRequest.class))).thenReturn(createdUser);
+
+        // When & Then
+        mockMvc.perform(post("/api/users")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {
+                        "username": "newuser",
+                        "email": "new@example.com",
+                        "password": "password123"
+                    }
+                    """))
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("$.id").value(1))
+            .andExpect(jsonPath("$.username").value("newuser"));
+    }
+
+    @Test
+    void shouldReturnBadRequestForInvalidInput() throws Exception {
+        // When & Then
+        mockMvc.perform(post("/api/users")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {
+                        "username": "",
+                        "email": "invalid-email",
+                        "password": "123"
+                    }
+                    """))
+            .andExpect(status().isBadRequest());
+    }
+}</code></pre>
+            </div>
+        </div>
+
+        <div class="content-section">
+            <h2>Testing with Security</h2>
+            <div class="code-block">
+                <pre><code>@WebMvcTest(UserController.class)
+@Import(SecurityConfig.class)
+public class UserControllerSecurityTest {
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @MockBean
+    private UserService userService;
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void shouldAllowAdminToDeleteUser() throws Exception {
+        // Given
+        doNothing().when(userService).deleteUser(1L);
+
+        // When & Then
+        mockMvc.perform(delete("/api/users/1"))
+            .andExpect(status().isNoContent());
+    }
+
+    @Test
+    @WithMockUser(roles = "USER")
+    void shouldForbidUserFromDeletingUser() throws Exception {
+        // When & Then
+        mockMvc.perform(delete("/api/users/1"))
+            .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void shouldRequireAuthenticationForProtectedEndpoints() throws Exception {
+        // When & Then
+        mockMvc.perform(delete("/api/users/1"))
+            .andExpect(status().isUnauthorized());
+    }
+}</code></pre>
+            </div>
+        </div>
+
+        <div class="content-section">
+            <h2>Advanced MockMvc Features</h2>
+            <div class="code-block">
+                <pre><code>@WebMvcTest(UserController.class)
+public class UserControllerAdvancedTest {
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @MockBean
+    private UserService userService;
+
+    @Test
+    void shouldHandleQueryParameters() throws Exception {
+        // Given
+        List&lt;User&gt; users = Arrays.asList(
+            new User(1L, "alice", "alice@example.com", "pass", true),
+            new User(2L, "bob", "bob@example.com", "pass", true)
+        );
+        when(userService.findByActive(true)).thenReturn(users);
+
+        // When & Then
+        mockMvc.perform(get("/api/users")
+                .param("active", "true"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$", hasSize(2)))
+            .andExpect(jsonPath("$[0].username").value("alice"))
+            .andExpect(jsonPath("$[1].username").value("bob"));
+    }
+
+    @Test
+    void shouldHandleHeaders() throws Exception {
+        // Given
+        User user = new User(1L, "alice", "alice@example.com", "pass", true);
+        when(userService.findById(1L)).thenReturn(user);
+
+        // When & Then
+        mockMvc.perform(get("/api/users/1")
+                .header("Accept", "application/json")
+                .header("X-Request-ID", "12345"))
+            .andExpect(status().isOk())
+            .andExpect(header().string("Content-Type", "application/json"))
+            .andExpect(jsonPath("$.username").value("alice"));
+    }
+}</code></pre>
+            </div>
+        </div>
+
+        <div class="content-section">
+            <h2>Testing Exception Handling</h2>
+            <div class="code-block">
+                <pre><code>@WebMvcTest(UserController.class)
+public class UserControllerExceptionTest {
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @MockBean
+    private UserService userService;
+
+    @Test
+    void shouldHandleValidationErrors() throws Exception {
+        // Given
+        when(userService.createUser(any())).thenThrow(
+            new ValidationException("Username already exists")
+        );
+
+        // When & Then
+        mockMvc.perform(post("/api/users")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {
+                        "username": "existinguser",
+                        "email": "test@example.com",
+                        "password": "password123"
+                    }
+                    """))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.message").value("Username already exists"));
+    }
+
+    @Test
+    void shouldHandleInternalServerError() throws Exception {
+        // Given
+        when(userService.findById(1L)).thenThrow(new RuntimeException("Database error"));
+
+        // When & Then
+        mockMvc.perform(get("/api/users/1"))
+            .andExpect(status().isInternalServerError());
+    }
+}</code></pre>
+            </div>
+        </div>
+
+        <div class="content-section">
+            <h2>Best Practices</h2>
+            <ul>
+                <li><strong>Mock External Dependencies:</strong> Use @MockBean for services and repositories</li>
+                <li><strong>Test HTTP Status Codes:</strong> Verify correct response codes for different scenarios</li>
+                <li><strong>Validate JSON Structure:</strong> Use JsonPath to verify response content</li>
+                <li><strong>Test Security:</strong> Include authentication and authorization tests</li>
+                <li><strong>Test Edge Cases:</strong> Invalid input, missing data, error conditions</li>
+            </ul>
+        </div>
+
+        <div class="key-points">
+            <h3>Key Takeaways</h3>
+            <ul>
+                <li>@WebMvcTest provides isolated testing for the web layer</li>
+                <li>MockMvc simulates HTTP requests without starting a server</li>
+                <li>Use @MockBean to mock service dependencies</li>
+                <li>Test both success and error scenarios</li>
+                <li>Verify HTTP status codes, headers, and JSON responses</li>
+            </ul>
+        </div>
+    </div>
+
+    <script src="../shared/contentfunctions.js"></script>
+</body>
+</html>

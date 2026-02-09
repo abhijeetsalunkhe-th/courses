@@ -1,0 +1,53 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" dir="ltr" lang="en-US">
+<head>
+    <title>Securing Endpoints with Matchers</title>
+    <style type="text/css" media="screen">
+		@import url( ../shared/style.css );
+	</style>
+	<script src="../shared/scormfunctions.js" type="text/javascript"></script>
+	<script src="../shared/contentfunctions.js" type="text/javascript"></script>
+</head>
+<body>
+<h1>Securing Endpoints with Matchers</h1>
+
+<h2>SecurityFilterChain Configuration</h2>
+<blockquote>
+@Bean
+public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    http
+        .csrf(csrf -&gt; csrf.disable()) 
+        .authorizeHttpRequests(auth -&gt; auth
+            .requestMatchers("/api/public/**").permitAll() 
+            .requestMatchers(HttpMethod.POST, "/api/admin/**").hasRole("ADMIN") 
+            .anyRequest().authenticated()
+        )
+        .httpBasic(Customizer.withDefaults()); 
+
+    return http.build();
+}
+</blockquote>
+
+<h2>Request Matchers</h2>
+<ul>
+    <li><strong>permitAll():</strong> Allow access to everyone</li>
+    <li><strong>authenticated():</strong> Require authentication</li>
+    <li><strong>hasRole():</strong> Require specific role</li>
+    <li><strong>hasAuthority():</strong> Require specific authority</li>
+</ul>
+
+<h2>Method-Level Security</h2>
+<blockquote>
+@PreAuthorize("hasRole('ADMIN')")
+@DeleteMapping("/api/users/{id}")
+public ResponseEntity&lt;Void&gt; deleteUser(@PathVariable Long id) {
+    userService.deleteUser(id);
+    return ResponseEntity.noContent().build();
+}
+</blockquote>
+
+<script type="text/javascript">
+// No promotional content
+</script>
+</body>
+</html>

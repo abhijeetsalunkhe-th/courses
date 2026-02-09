@@ -1,0 +1,385 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" dir="ltr" lang="en-US">
+<head>
+    <title>Advanced DTO Handling and Mapping</title>
+    <style type="text/css" media="screen">
+		@import url( ../shared/style.css );
+	</style>
+	<script src="../shared/scormfunctions.js" type="text/javascript"></script>
+	<script src="../shared/contentfunctions.js" type="text/javascript"></script>
+</head>
+<body>
+<h1>Advanced DTO Handling and Mapping</h1>
+
+<h2>The Problem with Manual Mapping</h2>
+<p>Manual field-by-field mapping between DTOs and Entities is:</p>
+<ul>
+    <li><strong>Error-Prone:</strong> Easy to miss fields or make typos</li>
+    <li><strong>Boilerplate Heavy:</strong> Lots of repetitive code</li>
+    <li><strong>Hard to Maintain:</strong> Changes require updates in multiple places</li>
+    <li><strong>Time-Consuming:</strong> Slows down development</li>
+</ul>
+
+<h2>MapStruct: Annotation-Based Mapping</h2>
+<p>MapStruct generates mapping code at compile time using annotations, providing type-safe and performant mapping.</p>
+
+<h3>Adding MapStruct Dependency</h3>
+<blockquote>
+&lt;!-- Maven --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.mapstruct&lt;/groupId&gt;
+    &lt;artifactId&gt;mapstruct&lt;/artifactId&gt;
+    &lt;version&gt;1.5.5.Final&lt;/version&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.mapstruct&lt;/groupId&gt;
+    &lt;artifactId&gt;mapstruct-processor&lt;/artifactId&gt;
+    &lt;version&gt;1.5.5.Final&lt;/version&gt;
+    &lt;scope&gt;provided&lt;/scope&gt;
+&lt;/dependency&gt;
+</blockquote>
+
+<h2>Basic MapStruct Mapper</h2>
+<blockquote>
+@Mapper(componentModel = "spring")
+public interface UserMapper {
+    
+    // Simple mapping - fields with same names are mapped automatically
+    UserResponse toResponse(User user);
+    
+    // Reverse mapping
+    User toEntity(UserCreationRequest request);
+    
+    // List mapping
+    List&lt;UserResponse&gt; toResponseList(List&lt;User&gt; users);
+}
+
+// Usage in controller
+@RestController
+public class UserController {
+    
+    @Autowired
+    private UserMapper userMapper;
+    
+    @Autowired
+    private UserService userService;
+    
+    @GetMapping("/api/users/{id}")
+    public ResponseEntity&lt;UserResponse&gt; getUser(@PathVariable Long id) {
+        User user = userService.findById(id);
+        UserResponse response = userMapper.toResponse(user);
+        return ResponseEntity.ok(response);
+    }
+}
+</blockquote>
+
+<h2>Custom Field Mapping</h2>
+<blockquote>
+@Mapper(componentModel = "spring")
+public interface UserMapper {
+    
+    @Mapping(source = "firstName", target = "fullName", qualifiedByName = "buildFullName")
+    @Mapping(source = "createdAt", target = "registrationDate")
+    @Mapping(target = "password", ignore = true)  // Don't map sensitive fields
+    UserResponse toResponse(User user);
+    
+    @Named("buildFullName")
+    default String buildFullName(String firstName, String lastName) {
+        if (firstName == null && lastName == null) {
+            return null;
+        }
+        return (firstName != null ? firstName : "") + " " + (lastName != null ? lastName : "");
+    }
+    
+    @Mapping(target = "id", ignore = true)  // ID is generated
+    @Mapping(target = "createdAt", expression = "java(java.time.LocalDateTime.now())")
+    @Mapping(target = "status", constant = "ACTIVE")
+    User toEntity(UserCreationRequest request);
+}
+</blockquote>
+
+<h2>Nested Object Mapping</h2>
+<blockquote>
+// Entity classes
+@Entity
+public class User {
+    private Long id;
+    private String username;
+    private String email;
+    private Address address;
+    private List&lt;Order&gt; orders;
+    // getters and setters
+}
+
+@Entity
+public class Address {
+    private String street;
+    private String city;
+    private String zipCode;
+    // getters and setters
+}
+
+// Response DTOs
+public class UserResponse {
+    private Long id;
+    private String username;
+    private String email;
+    private AddressResponse address;
+    private List&lt;OrderSummaryResponse&gt; orders;
+    // getters and setters
+}
+
+public class AddressResponse {
+    private String street;
+    private String city;
+    private String zipCode;
+    // getters and setters
+}
+
+// Mapper with nested mapping
+@Mapper(componentModel = "spring", uses = {AddressMapper.class, OrderMapper.class})
+public interface UserMapper {
+    
+    UserResponse toResponse(User user);
+    
+    // MapStruct will automatically use AddressMapper and OrderMapper
+    // for nested objects
+}
+
+@Mapper(componentModel = "spring")
+public interface AddressMapper {
+    AddressResponse toResponse(Address address);
+    Address toEntity(AddressRequest request);
+}
+</blockquote>
+
+<h2>Conditional Mapping</h2>
+<blockquote>
+@Mapper(componentModel = "spring")
+public interface UserMapper {
+    
+    @Mapping(source = "email", target = "maskedEmail", qualifiedByName = "maskEmail")
+    @Mapping(source = "orders", target = "orderCount", qualifiedByName = "countOrders")
+    UserPublicResponse toPublicResponse(User user);
+    
+    @Named("maskEmail")
+    default String maskEmail(String email) {
+        if (email == null || email.length() &lt; 3) {
+            return email;
+        }
+        int atIndex = email.indexOf('@');
+        if (atIndex &lt; 0) {
+            return email;
+        }
+        return email.substring(0, 2) + "***" + email.substring(atIndex);
+    }
+    
+    @Named("countOrders")
+    default Integer countOrders(List&lt;Order&gt; orders) {
+        return orders != null ? orders.size() : 0;
+    }
+}
+</blockquote>
+
+<h2>Update Mapping</h2>
+<p>MapStruct can update existing entities instead of creating new ones:</p>
+
+<blockquote>
+@Mapper(componentModel = "spring")
+public interface UserMapper {
+    
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "password", ignore = true)
+    void updateUserFromRequest(UserUpdateRequest request, @MappingTarget User user);
+}
+
+// Usage in service
+@Service
+public class UserService {
+    
+    @Autowired
+    private UserMapper userMapper;
+    
+    public User updateUser(Long id, UserUpdateRequest request) {
+        User existingUser = findById(id);
+        userMapper.updateUserFromRequest(request, existingUser);
+        return userRepository.save(existingUser);
+    }
+}
+</blockquote>
+
+<h2>Collection Mapping Strategies</h2>
+<blockquote>
+@Mapper(componentModel = "spring", collectionMappingStrategy = CollectionMappingStrategy.ADDER_PREFERRED)
+public interface UserMapper {
+    
+    // For collections, MapStruct can use different strategies:
+    // - ACCESSOR_ONLY: Use getter/setter
+    // - SETTER_PREFERRED: Prefer setter methods
+    // - ADDER_PREFERRED: Use adder methods for collections
+    
+    @Mapping(source = "roles", target = "authorities")
+    UserResponse toResponse(User user);
+    
+    // Custom collection mapping
+    default Set&lt;String&gt; mapRolesToAuthorities(Set&lt;Role&gt; roles) {
+        if (roles == null) {
+            return Collections.emptySet();
+        }
+        return roles.stream()
+            .map(Role::getName)
+            .map(name -&gt; "ROLE_" + name.toUpperCase())
+            .collect(Collectors.toSet());
+    }
+}
+</blockquote>
+
+<h2>Mapping Configuration</h2>
+<blockquote>
+@MapperConfig(
+    componentModel = "spring",
+    unmappedTargetPolicy = ReportingPolicy.ERROR,  // Fail if target field not mapped
+    unmappedSourcePolicy = ReportingPolicy.WARN,   // Warn if source field not used
+    nullValueMappingStrategy = NullValueMappingStrategy.RETURN_DEFAULT
+)
+public interface MapperConfiguration {
+}
+
+@Mapper(config = MapperConfiguration.class)
+public interface UserMapper {
+    // Inherits configuration from MapperConfiguration
+    UserResponse toResponse(User user);
+}
+</blockquote>
+
+<h2>Alternative: ModelMapper</h2>
+<p>ModelMapper provides runtime mapping with convention-based configuration:</p>
+
+<blockquote>
+@Configuration
+public class ModelMapperConfig {
+    
+    @Bean
+    public ModelMapper modelMapper() {
+        ModelMapper mapper = new ModelMapper();
+        
+        // Configure mapping strategy
+        mapper.getConfiguration()
+            .setMatchingStrategy(MatchingStrategies.STRICT)
+            .setFieldMatchingEnabled(true)
+            .setFieldAccessLevel(org.modelmapper.config.Configuration.AccessLevel.PRIVATE);
+        
+        // Custom mappings
+        mapper.createTypeMap(User.class, UserResponse.class)
+            .addMapping(User::getCreatedAt, UserResponse::setRegistrationDate)
+            .addMapping(src -&gt; src.getFirstName() + " " + src.getLastName(), 
+                       UserResponse::setFullName);
+        
+        return mapper;
+    }
+}
+
+// Usage in service
+@Service
+public class UserService {
+    
+    @Autowired
+    private ModelMapper modelMapper;
+    
+    public UserResponse convertToResponse(User user) {
+        return modelMapper.map(user, UserResponse.class);
+    }
+    
+    public List&lt;UserResponse&gt; convertToResponseList(List&lt;User&gt; users) {
+        return users.stream()
+            .map(user -&gt; modelMapper.map(user, UserResponse.class))
+            .collect(Collectors.toList());
+    }
+}
+</blockquote>
+
+<h2>Performance Considerations</h2>
+<table>
+    <tr>
+        <th>Approach</th>
+        <th>Performance</th>
+        <th>Compile Time</th>
+        <th>Type Safety</th>
+    </tr>
+    <tr>
+        <td class="rowheader">Manual Mapping</td>
+        <td>Fastest</td>
+        <td>Fast</td>
+        <td>High</td>
+    </tr>
+    <tr>
+        <td class="rowheader">MapStruct</td>
+        <td>Very Fast</td>
+        <td>Slower (code generation)</td>
+        <td>High</td>
+    </tr>
+    <tr>
+        <td class="rowheader">ModelMapper</td>
+        <td>Slower (reflection)</td>
+        <td>Fast</td>
+        <td>Medium</td>
+    </tr>
+</table>
+
+<h2>Testing Mappers</h2>
+<blockquote>
+@ExtendWith(MockitoExtension.class)
+class UserMapperTest {
+    
+    private UserMapper userMapper = Mappers.getMapper(UserMapper.class);
+    
+    @Test
+    void shouldMapUserToResponse() {
+        // Given
+        User user = new User();
+        user.setId(1L);
+        user.setUsername("john");
+        user.setEmail("john@example.com");
+        user.setCreatedAt(LocalDateTime.now());
+        
+        // When
+        UserResponse response = userMapper.toResponse(user);
+        
+        // Then
+        assertThat(response.getId()).isEqualTo(1L);
+        assertThat(response.getUsername()).isEqualTo("john");
+        assertThat(response.getEmail()).isEqualTo("john@example.com");
+        assertThat(response.getRegistrationDate()).isNotNull();
+    }
+    
+    @Test
+    void shouldIgnorePasswordInMapping() {
+        // Given
+        User user = new User();
+        user.setPassword("secret");
+        
+        // When
+        UserResponse response = userMapper.toResponse(user);
+        
+        // Then
+        assertThat(response.getPassword()).isNull();
+    }
+}
+</blockquote>
+
+<h2>Best Practices</h2>
+<ul>
+    <li><strong>Choose the Right Tool:</strong> MapStruct for performance, ModelMapper for flexibility</li>
+    <li><strong>Separate Concerns:</strong> Different DTOs for different use cases (create, update, response)</li>
+    <li><strong>Security:</strong> Never map sensitive fields like passwords to response DTOs</li>
+    <li><strong>Validation:</strong> Validate DTOs, not entities</li>
+    <li><strong>Testing:</strong> Test your mappers to ensure correct field mapping</li>
+    <li><strong>Documentation:</strong> Document custom mapping logic</li>
+</ul>
+
+<script type="text/javascript">
+// No promotional content
+</script>
+</body>
+</html>

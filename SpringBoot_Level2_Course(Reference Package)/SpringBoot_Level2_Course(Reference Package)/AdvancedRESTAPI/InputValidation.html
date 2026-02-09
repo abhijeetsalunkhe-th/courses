@@ -1,0 +1,386 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" dir="ltr" lang="en-US">
+<head>
+    <title>Input Validation with Bean Validation</title>
+    <style type="text/css" media="screen">
+		@import url( ../shared/style.css );
+	</style>
+	<script src="../shared/scormfunctions.js" type="text/javascript"></script>
+	<script src="../shared/contentfunctions.js" type="text/javascript"></script>
+</head>
+<body>
+<h1>Input Validation with Bean Validation</h1>
+
+<h2>Why Input Validation Matters</h2>
+<p>Input validation is crucial for:</p>
+<ul>
+    <li><strong>Security:</strong> Prevent injection attacks and malicious input</li>
+    <li><strong>Data Integrity:</strong> Ensure data meets business requirements</li>
+    <li><strong>User Experience:</strong> Provide clear feedback on invalid input</li>
+    <li><strong>System Stability:</strong> Prevent errors from propagating through the system</li>
+</ul>
+
+<h2>Bean Validation API</h2>
+<p>The Bean Validation API (JSR 303/380) provides a standardized way to validate Java objects using annotations. Spring Boot integrates seamlessly with this API.</p>
+
+<h3>Adding Validation Dependency</h3>
+<div class="code-block">
+<pre><code>&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-starter-validation&lt;/artifactId&gt;
+&lt;/dependency&gt;
+
+&lt;!-- Gradle --&gt;
+implementation 'org.springframework.boot:spring-boot-starter-validation'
+</code></pre>
+</div>
+
+<h2>Common Validation Annotations</h2>
+<table>
+    <tr>
+        <th>Annotation</th>
+        <th>Purpose</th>
+        <th>Example</th>
+    </tr>
+    <tr>
+        <td class="rowheader">@NotNull</td>
+        <td>Field cannot be null</td>
+        <td>@NotNull String name</td>
+    </tr>
+    <tr>
+        <td class="rowheader">@NotBlank</td>
+        <td>String cannot be null, empty, or whitespace</td>
+        <td>@NotBlank String username</td>
+    </tr>
+    <tr>
+        <td class="rowheader">@NotEmpty</td>
+        <td>Collection/Array cannot be null or empty</td>
+        <td>@NotEmpty List&lt;String&gt; tags</td>
+    </tr>
+    <tr>
+        <td class="rowheader">@Size</td>
+        <td>Validates size of strings, collections, arrays</td>
+        <td>@Size(min=3, max=50) String name</td>
+    </tr>
+    <tr>
+        <td class="rowheader">@Email</td>
+        <td>Validates email format</td>
+        <td>@Email String email</td>
+    </tr>
+    <tr>
+        <td class="rowheader">@Pattern</td>
+        <td>Validates against regex pattern</td>
+        <td>@Pattern(regexp="[0-9]+") String phone</td>
+    </tr>
+</table>
+
+<h2>Creating a Validated DTO</h2>
+<div class="code-block">
+<pre><code>public class UserCreationRequest {
+    
+    @NotBlank(message = "Username is required")
+    @Size(min = 3, max = 50, message = "Username must be between 3 and 50 characters")
+    private String username;
+
+    @NotBlank(message = "Email is required")
+    @Email(message = "Must be a valid email format")
+    private String email;
+    
+    @NotBlank(message = "Password is required")
+    @Size(min = 8, message = "Password must be at least 8 characters")
+    @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).*$", 
+             message = "Password must contain at least one lowercase, one uppercase, and one digit")
+    private String password;
+    
+    @NotNull(message = "Age is required")
+    @Min(value = 18, message = "Age must be at least 18")
+    @Max(value = 120, message = "Age must be less than 120")
+    private Integer age;
+    
+    @NotEmpty(message = "At least one role is required")
+    private List&lt;String&gt; roles;
+    
+    // Constructors, getters, and setters
+    public UserCreationRequest() {}
+    
+    public String getUsername() { return username; }
+    public void setUsername(String username) { this.username = username; }
+    
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+    
+    // ... other getters and setters
+}
+</code></pre>
+</div>
+
+<h2>Controller Validation</h2>
+<p>Use the <strong>@Valid</strong> annotation to trigger validation in controller methods:</p>
+
+<div class="code-block">
+<pre><code>@RestController
+@RequestMapping("/api/users")
+public class UserController {
+    
+    @Autowired
+    private UserService userService;
+    
+    @PostMapping
+    public ResponseEntity&lt;UserResponse&gt; createUser(
+            @Valid @RequestBody UserCreationRequest request) {
+        
+        // If validation fails, Spring throws MethodArgumentNotValidException
+        // before this method body executes
+        
+        User user = userService.createUser(request);
+        UserResponse response = new UserResponse(user);
+        
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+    
+    @PutMapping("/{id}")
+    public ResponseEntity&lt;UserResponse&gt; updateUser(
+            @PathVariable Long id,
+            @Valid @RequestBody UserUpdateRequest request) {
+        
+        User user = userService.updateUser(id, request);
+        UserResponse response = new UserResponse(user);
+        
+        return ResponseEntity.ok(response);
+    }
+}
+</code></pre>
+</div>
+
+<h2>Nested Object Validation</h2>
+<p>Use <strong>@Valid</strong> on nested objects to validate them recursively:</p>
+
+<div class="code-block">
+<pre><code>public class UserRegistrationRequest {
+    
+    @NotBlank(message = "Username is required")
+    private String username;
+    
+    @Valid  // This triggers validation of the nested Address object
+    @NotNull(message = "Address is required")
+    private Address address;
+    
+    @Valid  // Validate each ContactInfo in the list
+    @NotEmpty(message = "At least one contact method is required")
+    private List&lt;ContactInfo&gt; contacts;
+    
+    // getters and setters
+}
+
+public class Address {
+    
+    @NotBlank(message = "Street is required")
+    private String street;
+    
+    @NotBlank(message = "City is required")
+    private String city;
+    
+    @Pattern(regexp = "\\d{5}", message = "ZIP code must be 5 digits")
+    private String zipCode;
+    
+    // getters and setters
+}
+</code></pre>
+</div>
+
+<h2>Custom Validation Annotations</h2>
+<p>Create custom validators for business-specific rules:</p>
+
+<div class="code-block">
+<pre><code>// Custom annotation
+@Target({ElementType.FIELD})
+@Retention(RetentionPolicy.RUNTIME)
+@Constraint(validatedBy = UniqueUsernameValidator.class)
+public @interface UniqueUsername {
+    String message() default "Username already exists";
+    Class&lt;?&gt;[] groups() default {};
+    Class&lt;? extends Payload&gt;[] payload() default {};
+}
+
+// Validator implementation
+@Component
+public class UniqueUsernameValidator implements ConstraintValidator&lt;UniqueUsername, String&gt; {
+    
+    @Autowired
+    private UserRepository userRepository;
+    
+    @Override
+    public boolean isValid(String username, ConstraintValidatorContext context) {
+        if (username == null) {
+            return true; // Let @NotNull handle null values
+        }
+        
+        return !userRepository.existsByUsername(username);
+    }
+}
+
+// Usage in DTO
+public class UserCreationRequest {
+    
+    @NotBlank(message = "Username is required")
+    @UniqueUsername  // Custom validation
+    private String username;
+    
+    // other fields...
+}
+</code></pre>
+</div>
+
+<h2>Validation Groups</h2>
+<p>Use validation groups to apply different validation rules in different scenarios:</p>
+
+<div class="code-block">
+<pre><code>// Validation group interfaces
+public interface CreateValidation {}
+public interface UpdateValidation {}
+
+public class UserRequest {
+    
+    @NotNull(groups = {CreateValidation.class, UpdateValidation.class})
+    @Size(min = 3, max = 50, groups = {CreateValidation.class, UpdateValidation.class})
+    private String username;
+    
+    @NotNull(groups = CreateValidation.class)  // Required only for creation
+    @Size(min = 8, groups = CreateValidation.class)
+    private String password;
+    
+    @Email(groups = {CreateValidation.class, UpdateValidation.class})
+    private String email;
+    
+    // getters and setters
+}
+
+// Controller usage
+@PostMapping
+public ResponseEntity&lt;UserResponse&gt; createUser(
+        @Validated(CreateValidation.class) @RequestBody UserRequest request) {
+    // Only CreateValidation constraints are applied
+}
+
+@PutMapping("/{id}")
+public ResponseEntity&lt;UserResponse&gt; updateUser(
+        @PathVariable Long id,
+        @Validated(UpdateValidation.class) @RequestBody UserRequest request) {
+    // Only UpdateValidation constraints are applied
+}
+</code></pre>
+</div>
+
+<h2>Programmatic Validation</h2>
+<p>Sometimes you need to validate objects programmatically:</p>
+
+<div class="code-block">
+<pre><code>@Service
+public class UserService {
+    
+    private final Validator validator;
+    
+    public UserService(Validator validator) {
+        this.validator = validator;
+    }
+    
+    public void validateUser(UserCreationRequest request) {
+        Set&lt;ConstraintViolation&lt;UserCreationRequest&gt;&gt; violations = 
+            validator.validate(request);
+        
+        if (!violations.isEmpty()) {
+            StringBuilder sb = new StringBuilder();
+            for (ConstraintViolation&lt;UserCreationRequest&gt; violation : violations) {
+                sb.append(violation.getMessage()).append("; ");
+            }
+            throw new ValidationException(sb.toString());
+        }
+    }
+}
+</code></pre>
+</div>
+
+<h2>Validation Error Response Format</h2>
+<p>When validation fails, Spring throws <strong>MethodArgumentNotValidException</strong>. Handle this in a global exception handler:</p>
+
+<div class="code-block">
+<pre><code>@ControllerAdvice
+public class GlobalExceptionHandler {
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity&lt;ValidationErrorResponse&gt; handleValidationExceptions(
+            MethodArgumentNotValidException ex) {
+        
+        ValidationErrorResponse errorResponse = new ValidationErrorResponse();
+        errorResponse.setMessage("Validation failed");
+        errorResponse.setTimestamp(LocalDateTime.now());
+        
+        Map&lt;String, String&gt; fieldErrors = new HashMap&lt;&gt;();
+        ex.getBindingResult().getFieldErrors().forEach(error -&gt; 
+            fieldErrors.put(error.getField(), error.getDefaultMessage())
+        );
+        errorResponse.setFieldErrors(fieldErrors);
+        
+        return new ResponseEntity&lt;&gt;(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+}
+
+// Error response DTO
+public class ValidationErrorResponse {
+    private String message;
+    private LocalDateTime timestamp;
+    private Map&lt;String, String&gt; fieldErrors;
+    
+    // constructors, getters, and setters
+}
+</code></pre>
+</div>
+
+<h2>Best Practices</h2>
+<ul>
+    <li><strong>Fail Fast:</strong> Validate input at the controller layer before processing</li>
+    <li><strong>Clear Messages:</strong> Provide specific, user-friendly error messages</li>
+    <li><strong>Consistent Format:</strong> Use a standard error response format across your API</li>
+    <li><strong>Security:</strong> Don't expose internal system details in validation messages</li>
+    <li><strong>Performance:</strong> Use validation groups to avoid unnecessary validations</li>
+    <li><strong>Testing:</strong> Write tests for both valid and invalid input scenarios</li>
+</ul>
+
+<h2>Testing Validation</h2>
+<div class="code-block">
+<pre><code>@WebMvcTest(UserController.class)
+class UserControllerValidationTest {
+    
+    @Autowired
+    private MockMvc mockMvc;
+    
+    @MockBean
+    private UserService userService;
+    
+    @Test
+    void shouldReturnBadRequestForInvalidUser() throws Exception {
+        String invalidUserJson = """
+            {
+                "username": "ab",
+                "email": "invalid-email",
+                "password": "weak"
+            }
+            """;
+        
+        mockMvc.perform(post("/api/users")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(invalidUserJson))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.fieldErrors.username").exists())
+                .andExpect(jsonPath("$.fieldErrors.email").exists())
+                .andExpect(jsonPath("$.fieldErrors.password").exists());
+    }
+}
+</code></pre>
+</div>
+
+<script type="text/javascript">
+// No promotional content
+</script>
+</body>
+</html>
