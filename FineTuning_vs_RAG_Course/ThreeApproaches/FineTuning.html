@@ -1,0 +1,46 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" dir="ltr" lang="en-US">
+<head>
+    <title>Fine-Tuning - Modifying the Model</title>
+    <style type="text/css" media="screen">
+		@import url( ../shared/style.css );
+	</style>
+	<script src="../shared/scormfunctions.js" type="text/javascript"></script>
+	<script src="../shared/contentfunctions.js" type="text/javascript"></script>
+</head>
+<body>
+<h1>Fine-Tuning - Modifying the Model</h1>
+
+
+<h2>What It Is</h2>
+<p>Fine-tuning <strong>modifies the model's weights</strong> by training on domain-specific examples. The model internalizes new knowledge, style, or behavior.</p>
+
+<h2>Fine-Tuning Methods</h2>
+<table>
+    <tr><th>Method</th><th>What Changes</th><th>Data Needed</th><th>Cost</th></tr>
+    <tr><td>Full Fine-Tune</td><td>All weights</td><td>10K-100K+ examples</td><td>Very High</td></tr>
+    <tr><td>LoRA/QLoRA</td><td>Small adapter layers</td><td>1K-10K examples</td><td>Medium</td></tr>
+    <tr><td>Instruction Tuning</td><td>Behavior/format only</td><td>500-5K examples</td><td>Low-Medium</td></tr>
+</table>
+
+<h2>Strengths</h2>
+<ul>
+    <li><strong>Internalized knowledge:</strong> No retrieval needed at inference time</li>
+    <li><strong>Consistent style:</strong> Model adopts your tone, terminology, format</li>
+    <li><strong>Lower inference cost:</strong> No RAG pipeline overhead per request</li>
+    <li><strong>Better at behavioral changes:</strong> Teaching new response patterns</li>
+</ul>
+
+<h2>Limitations</h2>
+<ul>
+    <li><strong>Training data quality:</strong> Garbage in, garbage out</li>
+    <li><strong>Catastrophic forgetting:</strong> May lose general capabilities</li>
+    <li><strong>Static knowledge:</strong> Requires retraining to update information</li>
+    <li><strong>High upfront cost:</strong> GPU compute, data preparation, evaluation</li>
+</ul>
+
+
+<script type="text/javascript">
+</script>
+</body>
+</html>

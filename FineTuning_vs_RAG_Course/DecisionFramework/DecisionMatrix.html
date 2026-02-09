@@ -1,0 +1,55 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" dir="ltr" lang="en-US">
+<head>
+    <title>The Decision Matrix</title>
+    <style type="text/css" media="screen">
+		@import url( ../shared/style.css );
+	</style>
+	<script src="../shared/scormfunctions.js" type="text/javascript"></script>
+	<script src="../shared/contentfunctions.js" type="text/javascript"></script>
+</head>
+<body>
+<h1>The Decision Matrix</h1>
+
+
+<h2>Decision Flowchart</h2>
+<p>Ask these questions in order to choose the right approach:</p>
+
+<h3>Question 1: Does the model already know enough?</h3>
+<ul>
+    <li><strong>Yes:</strong> Use <strong>Prompt Engineering</strong>. Start here always.</li>
+    <li><strong>No:</strong> Continue to Question 2.</li>
+</ul>
+
+<h3>Question 2: Does the knowledge change frequently?</h3>
+<ul>
+    <li><strong>Yes:</strong> Use <strong>RAG</strong>. Documents can be updated without retraining.</li>
+    <li><strong>No:</strong> Continue to Question 3.</li>
+</ul>
+
+<h3>Question 3: Do you need behavioral change or knowledge?</h3>
+<ul>
+    <li><strong>Knowledge:</strong> Use <strong>RAG</strong>. More reliable for factual grounding.</li>
+    <li><strong>Behavior/Style:</strong> Use <strong>Fine-Tuning</strong>. Better for tone, format, domain language.</li>
+</ul>
+
+<h2>Comparison Summary</h2>
+<table>
+    <tr><th>Criteria</th><th>Prompt Eng.</th><th>RAG</th><th>Fine-Tuning</th></tr>
+    <tr><td>Setup Cost</td><td>None</td><td>Medium</td><td>High</td></tr>
+    <tr><td>Time to Deploy</td><td>Minutes</td><td>Days</td><td>Weeks</td></tr>
+    <tr><td>Data Required</td><td>0 examples</td><td>Documents</td><td>1K+ examples</td></tr>
+    <tr><td>Knowledge Updates</td><td>Instant</td><td>Re-index docs</td><td>Retrain model</td></tr>
+    <tr><td>Inference Cost</td><td>Token-based</td><td>Token + retrieval</td><td>Token only</td></tr>
+    <tr><td>Hallucination Risk</td><td>Higher</td><td>Lower (grounded)</td><td>Medium</td></tr>
+    <tr><td>Best For</td><td>Format/style</td><td>Knowledge Q&A</td><td>Domain behavior</td></tr>
+</table>
+
+<h2>Hybrid Approaches</h2>
+<p>In practice, the best solutions often combine approaches: <strong>Fine-tuned model + RAG + careful prompting</strong>. Use fine-tuning for domain language and style, RAG for current knowledge, and prompt engineering for task-specific instructions.</p>
+
+
+<script type="text/javascript">
+</script>
+</body>
+</html>

@@ -1,0 +1,85 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" dir="ltr" lang="en-US">
+<head>
+    <title>Choosing and Fine-Tuning Embeddings</title>
+    <style type="text/css" media="screen">
+		@import url( ../shared/style.css );
+	</style>
+	<script src="../shared/scormfunctions.js" type="text/javascript"></script>
+	<script src="../shared/contentfunctions.js" type="text/javascript"></script>
+</head>
+<body>
+<h1>Choosing and Fine-Tuning Embeddings</h1>
+
+
+<h2>Choosing the Right Embedding Model</h2>
+<p>Selection criteria beyond raw benchmark scores:</p>
+<ul>
+    <li><strong>Context length:</strong> Voyage-3 handles 32K tokens; others max at 512-8K</li>
+    <li><strong>Multilingual needs:</strong> Cohere embed-v3 supports 100+ languages natively</li>
+    <li><strong>Self-hosting:</strong> BGE models can run on your infrastructure (no API costs)</li>
+    <li><strong>Cost:</strong> OpenAI small is cheapest per token; self-hosted BGE is free after GPU</li>
+    <li><strong>Ecosystem:</strong> Match your LLM provider (Voyage for Claude, Google for Gemini)</li>
+</ul>
+
+<h2>Matryoshka Embeddings</h2>
+<p>OpenAI's text-embedding-3 models support Matryoshka Representation Learning - you can truncate embeddings to smaller dimensions with minimal quality loss:</p>
+<div class="code-block">
+<pre><code>from openai import OpenAI
+client = OpenAI()
+
+# Full 3072 dimensions
+response = client.embeddings.create(
+    model="text-embedding-3-large",
+    input="Sample text",
+    dimensions=3072  # Full quality
+)
+
+# Truncated to 256 dimensions (saves 12x storage)
+response_small = client.embeddings.create(
+    model="text-embedding-3-large",
+    input="Sample text",
+    dimensions=256  # ~95% of full quality for retrieval
+)</code></pre>
+</div>
+
+<h2>Fine-Tuning Embeddings</h2>
+<p>Fine-tune for domain-specific retrieval tasks:</p>
+<div class="code-block">
+<pre><code># Using sentence-transformers for fine-tuning BGE
+from sentence_transformers import SentenceTransformer, InputExample, losses
+from torch.utils.data import DataLoader
+
+model = SentenceTransformer("BAAI/bge-large-en-v1.5")
+
+# Training pairs: (query, relevant_document)
+train_examples = [
+    InputExample(texts=["how to deploy", "Deployment guide for Kubernetes..."]),
+    InputExample(texts=["auth setup", "Configure OAuth 2.0 authentication..."])
+]
+
+train_dataloader = DataLoader(train_examples, shuffle=True, batch_size=16)
+train_loss = losses.MultipleNegativesRankingLoss(model)
+
+model.fit(
+    train_objectives=[(train_dataloader, train_loss)],
+    epochs=3,
+    output_path="./finetuned-bge"
+)</code></pre>
+</div>
+
+<h2>Cost Comparison (per 1M tokens)</h2>
+<table>
+    <tr><th>Model</th><th>Cost</th><th>Notes</th></tr>
+    <tr><td>OpenAI text-embedding-3-small</td><td>$0.02</td><td>Best price/performance for API</td></tr>
+    <tr><td>OpenAI text-embedding-3-large</td><td>$0.13</td><td>Highest API quality</td></tr>
+    <tr><td>Cohere embed-v3</td><td>$0.10</td><td>Best for multilingual</td></tr>
+    <tr><td>Voyage voyage-3</td><td>$0.06</td><td>Best for long documents</td></tr>
+    <tr><td>BGE (self-hosted)</td><td>GPU cost only</td><td>Free model, pay for compute</td></tr>
+</table>
+
+
+<script type="text/javascript">
+</script>
+</body>
+</html>

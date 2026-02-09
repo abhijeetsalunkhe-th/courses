@@ -1,0 +1,49 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" dir="ltr" lang="en-US">
+<head>
+    <title>Admin Console and Workspace Management</title>
+    <style type="text/css" media="screen">
+		@import url( ../shared/style.css );
+	</style>
+	<script src="../shared/scormfunctions.js" type="text/javascript"></script>
+	<script src="../shared/contentfunctions.js" type="text/javascript"></script>
+</head>
+<body>
+<h1>Admin Console and Workspace Management</h1>
+
+
+<h2>Anthropic Admin Console Overview</h2>
+<p>The Anthropic Admin Console provides centralized management for enterprise Claude deployments:</p>
+<ul>
+    <li><strong>Organization management:</strong> Create and manage workspaces for teams</li>
+    <li><strong>User provisioning:</strong> Add users, assign roles, manage access</li>
+    <li><strong>Usage dashboards:</strong> Monitor token consumption, costs, and API usage</li>
+    <li><strong>API key management:</strong> Create, rotate, and revoke API keys</li>
+    <li><strong>Audit logging:</strong> Track all administrative actions</li>
+</ul>
+
+<h2>Workspace Architecture</h2>
+<p>Workspaces provide isolation between teams and projects:</p>
+<table>
+    <tr><th>Feature</th><th>Organization Level</th><th>Workspace Level</th></tr>
+    <tr><td>Billing</td><td>Centralized</td><td>Per-workspace budgets</td></tr>
+    <tr><td>API Keys</td><td>Admin keys</td><td>Scoped to workspace</td></tr>
+    <tr><td>Rate Limits</td><td>Organization-wide</td><td>Per-workspace quotas</td></tr>
+    <tr><td>Members</td><td>All org members</td><td>Assigned members only</td></tr>
+    <tr><td>Models</td><td>Enable/disable models</td><td>Inherit or restrict</td></tr>
+</table>
+
+<h2>Role-Based Access Control</h2>
+<p>Enterprise accounts support granular RBAC:</p>
+<ul>
+    <li><strong>Organization Admin:</strong> Full control over all settings, billing, and workspaces</li>
+    <li><strong>Workspace Admin:</strong> Manage members and settings within a workspace</li>
+    <li><strong>Developer:</strong> Create API keys and use APIs within assigned workspaces</li>
+    <li><strong>Viewer:</strong> Read-only access to dashboards and usage data</li>
+</ul>
+
+
+<script type="text/javascript">
+</script>
+</body>
+</html>

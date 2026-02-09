@@ -1,0 +1,47 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" dir="ltr" lang="en-US">
+<head>
+    <title>RAG - Adding External Knowledge</title>
+    <style type="text/css" media="screen">
+		@import url( ../shared/style.css );
+	</style>
+	<script src="../shared/scormfunctions.js" type="text/javascript"></script>
+	<script src="../shared/contentfunctions.js" type="text/javascript"></script>
+</head>
+<body>
+<h1>RAG - Adding External Knowledge</h1>
+
+
+<h2>What It Is</h2>
+<p>RAG augments an LLM by <strong>retrieving relevant documents</strong> at query time and including them in the prompt. The model's weights remain unchanged, but it has access to external knowledge.</p>
+
+<h2>Typical RAG Stack</h2>
+<table>
+    <tr><th>Component</th><th>Purpose</th><th>Examples</th></tr>
+    <tr><td>Document Store</td><td>Hold source documents</td><td>S3, GCS, database</td></tr>
+    <tr><td>Embedding Model</td><td>Convert text to vectors</td><td>OpenAI Ada, Cohere, BGE</td></tr>
+    <tr><td>Vector Database</td><td>Similarity search</td><td>Pinecone, Weaviate, pgvector</td></tr>
+    <tr><td>LLM</td><td>Generate answers from context</td><td>Claude, GPT-4, Gemini</td></tr>
+</table>
+
+<h2>Strengths</h2>
+<ul>
+    <li><strong>Current information:</strong> Add or update documents without retraining</li>
+    <li><strong>Source attribution:</strong> Can cite specific documents and passages</li>
+    <li><strong>Domain knowledge:</strong> Works with proprietary/internal data</li>
+    <li><strong>Reduced hallucination:</strong> Grounds responses in retrieved facts</li>
+</ul>
+
+<h2>Limitations</h2>
+<ul>
+    <li><strong>Retrieval quality:</strong> Answer quality depends on finding the right documents</li>
+    <li><strong>Latency:</strong> Additional retrieval step adds response time</li>
+    <li><strong>Chunking challenges:</strong> Poor chunking leads to lost context</li>
+    <li><strong>Infrastructure cost:</strong> Vector database hosting and embedding generation</li>
+</ul>
+
+
+<script type="text/javascript">
+</script>
+</body>
+</html>
