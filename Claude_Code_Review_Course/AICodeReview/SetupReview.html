@@ -1,0 +1,64 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" dir="ltr" lang="en-US">
+<head>
+    <title>Setting Up Claude Code for Reviews</title>
+    <style type="text/css" media="screen">
+		@import url( ../shared/style.css );
+	</style>
+	<script src="../shared/scormfunctions.js" type="text/javascript"></script>
+	<script src="../shared/contentfunctions.js" type="text/javascript"></script>
+</head>
+<body>
+<h1>Setting Up Claude Code for Reviews</h1>
+
+
+<h2>Why AI-Assisted Code Review?</h2>
+<p>Traditional code review is time-consuming and inconsistent. AI-powered reviews with Claude Code can:</p>
+<ul>
+    <li><strong>Catch bugs early:</strong> Detect null pointer issues, race conditions, and logic errors</li>
+    <li><strong>Enforce consistency:</strong> Ensure naming conventions, patterns, and architectural standards</li>
+    <li><strong>Speed up reviews:</strong> Provide instant feedback so human reviewers focus on design decisions</li>
+    <li><strong>Educate developers:</strong> Explain why changes are suggested, not just what to change</li>
+</ul>
+
+<h2>Using Claude Code for PR Reviews</h2>
+<p>Claude Code integrates directly with your Git workflow to review pull requests:</p>
+<div class="code-block">
+<pre><code># Review the current branch against main
+claude review
+
+# Review specific files
+claude review src/auth/*.ts
+
+# Review with specific focus areas
+claude "Review this PR for security vulnerabilities and performance issues"</code></pre>
+</div>
+
+<h2>Configuring Review Hooks</h2>
+<p>Set up automated reviews using Claude Code hooks in your project settings:</p>
+<div class="code-block">
+<pre><code># .claude/settings.json
+{
+  "hooks": {
+    "pre-commit": {
+      "command": "claude code-review --staged",
+      "timeout": 30000
+    }
+  }
+}</code></pre>
+</div>
+
+<h2>Review Output Structure</h2>
+<p>Claude Code provides structured review feedback including:</p>
+<ul>
+    <li><strong>Critical issues:</strong> Security vulnerabilities, data loss risks, breaking changes</li>
+    <li><strong>Warnings:</strong> Performance concerns, potential edge cases, missing error handling</li>
+    <li><strong>Suggestions:</strong> Readability improvements, idiomatic patterns, documentation gaps</li>
+    <li><strong>Positive feedback:</strong> Well-written code sections and good design decisions</li>
+</ul>
+
+
+<script type="text/javascript">
+</script>
+</body>
+</html>

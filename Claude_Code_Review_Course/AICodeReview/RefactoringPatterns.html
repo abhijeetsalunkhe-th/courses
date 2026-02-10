@@ -1,0 +1,63 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" dir="ltr" lang="en-US">
+<head>
+    <title>Automated Refactoring Patterns</title>
+    <style type="text/css" media="screen">
+		@import url( ../shared/style.css );
+	</style>
+	<script src="../shared/scormfunctions.js" type="text/javascript"></script>
+	<script src="../shared/contentfunctions.js" type="text/javascript"></script>
+</head>
+<body>
+<h1>Automated Refactoring Patterns</h1>
+
+
+<h2>Refactoring with Claude Code</h2>
+<p>Claude Code can perform complex refactoring operations that understand code semantics, not just text patterns:</p>
+<div class="code-block">
+<pre><code># Rename a class and update all references
+claude "Rename UserService to UserAccountService and update all imports"
+
+# Extract a method from complex logic
+claude "Extract the validation logic in processOrder() into a separate validateOrder() method"
+
+# Convert callback-based code to async/await
+claude "Refactor the database module from callbacks to async/await"</code></pre>
+</div>
+
+<h2>Common Refactoring Patterns</h2>
+<table>
+    <tr><th>Pattern</th><th>When to Use</th><th>Claude Command</th></tr>
+    <tr><td>Extract Method</td><td>Long methods with identifiable sub-tasks</td><td>"Extract ... into a method"</td></tr>
+    <tr><td>Rename Symbol</td><td>Unclear or inconsistent naming</td><td>"Rename X to Y across the codebase"</td></tr>
+    <tr><td>Move to Module</td><td>Code in wrong file or module</td><td>"Move X from file A to file B"</td></tr>
+    <tr><td>Replace Pattern</td><td>Deprecated API or outdated pattern</td><td>"Replace all uses of X with Y"</td></tr>
+    <tr><td>Add Types</td><td>Untyped JavaScript to TypeScript</td><td>"Add TypeScript types to this module"</td></tr>
+</table>
+
+<h2>Codebase-Wide Transformations</h2>
+<p>For large-scale changes, Claude Code can plan and execute multi-file refactoring:</p>
+<div class="code-block">
+<pre><code># Migration-style refactoring
+claude "Migrate all REST controllers from Spring WebMVC to Spring WebFlux"
+
+# Pattern replacement across codebase
+claude "Replace all System.out.println with proper SLF4J logging"
+
+# Architecture refactoring
+claude "Split the monolithic UserController into separate controllers for auth, profile, and preferences"</code></pre>
+</div>
+
+<h2>Safety and Verification</h2>
+<ul>
+    <li><strong>Dry run mode:</strong> Preview changes before applying them</li>
+    <li><strong>Test integration:</strong> Run tests after refactoring to verify correctness</li>
+    <li><strong>Git integration:</strong> Changes are staged but not committed, allowing manual review</li>
+    <li><strong>Rollback:</strong> Use git to easily revert if refactoring introduces issues</li>
+</ul>
+
+
+<script type="text/javascript">
+</script>
+</body>
+</html>

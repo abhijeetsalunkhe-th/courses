@@ -1,0 +1,57 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" dir="ltr" lang="en-US">
+<head>
+    <title>Code Quality Analysis and Technical Debt</title>
+    <style type="text/css" media="screen">
+		@import url( ../shared/style.css );
+	</style>
+	<script src="../shared/scormfunctions.js" type="text/javascript"></script>
+	<script src="../shared/contentfunctions.js" type="text/javascript"></script>
+</head>
+<body>
+<h1>Code Quality Analysis and Technical Debt</h1>
+
+
+<h2>Analyzing Technical Debt with Claude</h2>
+<p>Claude Code can identify and prioritize technical debt across your codebase:</p>
+<div class="code-block">
+<pre><code># Scan for technical debt
+claude "Analyze this codebase for technical debt. Identify the top 5 areas that need refactoring and explain why."
+
+# Find code smells
+claude "Find code smells in the services/ directory: long methods, deep nesting, duplicate code, god classes"
+
+# Assess test coverage gaps
+claude "Which critical code paths in the payment module lack test coverage?"</code></pre>
+</div>
+
+<h2>Complexity Analysis</h2>
+<p>Claude can evaluate code complexity and suggest simplifications:</p>
+<ul>
+    <li><strong>Cyclomatic complexity:</strong> Methods with too many branches</li>
+    <li><strong>Coupling analysis:</strong> Classes with too many dependencies</li>
+    <li><strong>Cohesion assessment:</strong> Modules mixing unrelated responsibilities</li>
+    <li><strong>API surface analysis:</strong> Overly broad interfaces that should be narrowed</li>
+</ul>
+
+<h2>Generating Refactoring Plans</h2>
+<p>For large codebases, Claude can create incremental refactoring roadmaps:</p>
+<div class="code-block">
+<pre><code># Generate a refactoring plan
+claude "Create a step-by-step refactoring plan to migrate our authentication from session-based to JWT tokens. Include which files change at each step and how to verify correctness."</code></pre>
+</div>
+
+<h2>Documentation Generation</h2>
+<p>Claude Code can generate and maintain documentation as part of the review process:</p>
+<ul>
+    <li>API documentation from code and tests</li>
+    <li>Architecture decision records (ADRs) from significant changes</li>
+    <li>Migration guides when breaking changes are introduced</li>
+    <li>Inline documentation for complex algorithms</li>
+</ul>
+
+
+<script type="text/javascript">
+</script>
+</body>
+</html>

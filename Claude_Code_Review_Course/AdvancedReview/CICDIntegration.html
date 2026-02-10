@@ -1,0 +1,67 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" dir="ltr" lang="en-US">
+<head>
+    <title>CI/CD Integration and Custom Rules</title>
+    <style type="text/css" media="screen">
+		@import url( ../shared/style.css );
+	</style>
+	<script src="../shared/scormfunctions.js" type="text/javascript"></script>
+	<script src="../shared/contentfunctions.js" type="text/javascript"></script>
+</head>
+<body>
+<h1>CI/CD Integration and Custom Rules</h1>
+
+
+<h2>Integrating Claude Code in CI/CD</h2>
+<p>Add AI-powered code review as a step in your continuous integration pipeline:</p>
+<div class="code-block">
+<pre><code># GitHub Actions workflow
+name: AI Code Review
+on: [pull_request]
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run Claude Code Review
+        run: |
+          claude review --format=github-comments
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}</code></pre>
+</div>
+
+<h2>Custom Review Rules</h2>
+<p>Define project-specific review rules in your Claude Code configuration:</p>
+<div class="code-block">
+<pre><code># CLAUDE.md - Project-level instructions
+## Code Review Rules
+- All public methods must have JSDoc comments
+- No direct DOM manipulation outside React components
+- Database queries must use parameterized statements
+- API endpoints must validate request body with Zod schemas
+- No console.log in production code (use logger instead)</code></pre>
+</div>
+
+<h2>Review Metrics and Tracking</h2>
+<p>Track the effectiveness of AI-assisted reviews over time:</p>
+<ul>
+    <li><strong>Bug detection rate:</strong> Percentage of bugs caught by AI vs human review</li>
+    <li><strong>False positive rate:</strong> How often AI flags non-issues</li>
+    <li><strong>Review time reduction:</strong> Time saved compared to fully manual reviews</li>
+    <li><strong>Developer satisfaction:</strong> Team feedback on AI review quality</li>
+</ul>
+
+<h2>Best Practices</h2>
+<ul>
+    <li>Use AI review as a first pass, not a replacement for human review</li>
+    <li>Maintain a CLAUDE.md file with project-specific coding standards</li>
+    <li>Review AI suggestions critically - they can be wrong</li>
+    <li>Iterate on custom rules based on false positives and missed issues</li>
+    <li>Combine AI review with linters, formatters, and type checkers</li>
+</ul>
+
+
+<script type="text/javascript">
+</script>
+</body>
+</html>
