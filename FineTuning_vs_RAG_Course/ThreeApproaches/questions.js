@@ -1,47 +1,47 @@
-test.AddQuestion( new Question ("q1",
-                                "Which statement about Strengths is accurate?",
+test.AddQuestion( new Question ("ftr_q1",
+                                "What is the primary technical difference between RAG and Fine-Tuning?",
                                 QUESTION_TYPE_CHOICE,
-                                new Array("Generate answers from context", "Strengths", "Fine-Tuning Methods", "Internalized knowledge: No retrieval needed at inference time"),
-                                "Internalized knowledge: No retrieval needed at inference time",
-                                "obj_module_2")
+                                new Array("RAG modifies the model weights, while Fine-Tuning uses external data.", "Fine-Tuning modifies the model weights, while RAG provides external context in the prompt.", "RAG is only for images, while Fine-Tuning is for text.", "There is no technical difference."),
+                                "Fine-Tuning modifies the model weights, while RAG provides external context in the prompt.",
+                                "obj_comparison")
                 );
 
-test.AddQuestion( new Question ("q2",
-                                "Which of the following best describes Strengths?",
+test.AddQuestion( new Question ("ftr_q2",
+                                "Which approach is considered the most 'dynamic' for providing up-to-date information?",
                                 QUESTION_TYPE_CHOICE,
-                                new Array("Instruction Tuning: Behavior/format only", "Consistent style: Model adopts your tone, terminology, format", "System prompts: Define role, constraints, and output format", "Chunking challenges: Poor chunking leads to lost context"),
-                                "Consistent style: Model adopts your tone, terminology, format",
-                                "obj_module_2")
+                                new Array("Prompt Engineering", "Fine-Tuning", "Retrieval-Augmented Generation (RAG)", "Manual Overrides"),
+                                "Retrieval-Augmented Generation (RAG)",
+                                "obj_rag")
                 );
 
-test.AddQuestion( new Question ("q3",
-                                "How is Strengths best defined?",
+test.AddQuestion( new Question ("ftr_q3",
+                                "What does the 'A' in RAG stand for?",
                                 QUESTION_TYPE_CHOICE,
-                                new Array("10K-100K+ examples", "Static knowledge: Requires retraining to update information", "Pinecone, Weaviate, pgvector", "Lower inference cost: No RAG pipeline overhead per request"),
-                                "Lower inference cost: No RAG pipeline overhead per request",
-                                "obj_module_2")
+                                new Array("Artificial", "Augmented", "Advanced", "Applied"),
+                                "Augmented",
+                                "obj_rag")
                 );
 
-test.AddQuestion( new Question ("q4",
-                                "What is a key characteristic of Strengths?",
+test.AddQuestion( new Question ("ftr_q4",
+                                "Which technique involves providing a few examples of desired behavior directly in the system message?",
                                 QUESTION_TYPE_CHOICE,
-                                new Array("Better at behavioral changes: Teaching new response patterns", "LLM: Generate answers from context", "Inconsistency: Complex prompts may produce variable results", "Vector Database"),
-                                "Better at behavioral changes: Teaching new response patterns",
-                                "obj_module_2")
+                                new Array("Full Fine-Tuning", "Few-Shot Prompting", "LoRA", "Vector Ingestion"),
+                                "Few-Shot Prompting",
+                                "obj_prompt")
                 );
 
-test.AddQuestion( new Question ("q5",
-                                "What distinguishes Limitations from other approaches?",
+test.AddQuestion( new Question ("ftr_q5",
+                                "If you need a model to strictly adhere to a highly specialized JSON schema for every response, which method is MOST reliable for behavior?",
                                 QUESTION_TYPE_CHOICE,
-                                new Array("Few-shot examples: Show desired input-output patterns", "Training data quality: Garbage in, garbage out", "Current information: Add or update documents without retraining", "Internalized knowledge: No retrieval needed at inference time"),
-                                "Training data quality: Garbage in, garbage out",
-                                "obj_module_2")
+                                new Array("Zero-shot prompting", "RAG", "Fine-Tuning", "Asking nicely"),
+                                "Fine-Tuning",
+                                "obj_finetuning")
                 );
 
-test.AddQuestion( new Question ("q6",
-                                "Which of the following is true regarding Limitations?",
+test.AddQuestion( new Question ("ftr_q6",
+                                "What is a major disadvantage of Fine-Tuning compared to RAG?",
                                 QUESTION_TYPE_CHOICE,
-                                new Array("Instant iteration: Change the prompt and test immediately", "Vector Database", "Catastrophic forgetting: May lose general capabilities", "1K-10K examples"),
-                                "Catastrophic forgetting: May lose general capabilities",
-                                "obj_module_2")
+                                new Array("It requires a vector database", "It cannot be used with Claude", "The knowledge becomes static and requires retraining to update", "It is always cheaper to run"),
+                                "The knowledge becomes static and requires retraining to update",
+                                "obj_finetuning")
                 );

@@ -1,0 +1,69 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" dir="ltr" lang="en-US">
+<head>
+    <title>Pros and Cons of RAG vs. Fine-Tuning</title>
+    <style type="text/css" media="screen">
+		@import url( ../shared/style.css );
+	</style>
+	<script src="../shared/scormfunctions.js" type="text/javascript"></script>
+	<script src="../shared/contentfunctions.js" type="text/javascript"></script>
+</head>
+<body>
+<h1>Pros and Cons: RAG vs. Fine-Tuning</h1>
+
+<h2>Retrieval-Augmented Generation (RAG)</h2>
+<table>
+    <tr>
+        <th>Pros</th>
+        <th>Cons</th>
+    </tr>
+    <tr>
+        <td>Dynamic: Easy to update knowledge by adding documents.</td>
+        <td>Retrieval Latency: Adds an extra step to the process.</td>
+    </tr>
+    <tr>
+        <td>Factual Grounding: Reduces hallucinations by citing sources.</td>
+        <td>Complexity: Requires maintaining a vector database and embedding pipeline.</td>
+    </tr>
+    <tr>
+        <td>Cost-Effective: No expensive retraining required.</td>
+        <td>Context Window Limits: Dependent on the LLM's ability to process retrieved text.</td>
+    </tr>
+</table>
+
+<h2>Fine-Tuning</h2>
+<table>
+    <tr>
+        <th>Pros</th>
+        <th>Cons</th>
+    </tr>
+    <tr>
+        <td>Internalized Style: Excellent for adopting specific tone or format.</td>
+        <td>Static Knowledge: Knowledge becomes outdated as soon as data changes.</td>
+    </tr>
+    <tr>
+        <td>Reduced Latency: No retrieval step at inference time.</td>
+        <td>High Upfront Cost: Requires significant compute and labeled data.</td>
+    </tr>
+    <tr>
+        <td>Lower Token Usage: Knowledge is 'baked in', requiring shorter prompts.</td>
+        <td>Risk of Catastrophic Forgetting: Model may lose general reasoning abilities.</td>
+    </tr>
+</table>
+
+<h2>Practical Comparison</h2>
+<ul>
+    <li><strong>Knowledge Updates:</strong> RAG wins. You can update a RAG system in seconds by adding a PDF. Fine-tuning takes hours or days.</li>
+    <li><strong>Instruction Following:</strong> Fine-tuning wins. It's much better at teaching a model to respond in a specific JSON format or specialized dialect.</li>
+    <li><strong>Data Privacy:</strong> Both can be secure, but RAG is often easier to audit for "right to be forgotten" compliance.</li>
+</ul>
+
+<h2>The Hybrid Path</h2>
+<blockquote>
+<strong>Modern Approach:</strong> Most production systems use a hybrid approach. They use a <strong>fine-tuned model</strong> for style and domain language, combined with <strong>RAG</strong> for up-to-the-minute factual accuracy.
+</blockquote>
+
+<script type="text/javascript">
+</script>
+</body>
+</html>

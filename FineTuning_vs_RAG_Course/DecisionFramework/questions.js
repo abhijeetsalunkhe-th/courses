@@ -1,47 +1,47 @@
-test.AddQuestion( new Question ("q1",
-                                "What is an important aspect of Decision Flowchart?",
+test.AddQuestion( new Question ("df_q1",
+                                "In the Decision Matrix, which approach is recommended as the absolute first step for any project?",
                                 QUESTION_TYPE_CHOICE,
-                                new Array("Hallucination Risk", "Domain behavior", "Yes: Use Prompt Engineering. Start here always.", "Setup Cost: None"),
-                                "Yes: Use Prompt Engineering. Start here always.",
-                                "obj_module_1")
+                                new Array("Fine-Tuning", "RAG", "Prompt Engineering", "VPC Deployment"),
+                                "Prompt Engineering",
+                                "obj_matrix")
                 );
 
-test.AddQuestion( new Question ("q2",
-                                "What distinguishes Decision Flowchart from other approaches?",
+test.AddQuestion( new Question ("df_q2",
+                                "Scenario: You need a model to answer questions about proprietary research papers that are published every week. Which strategy should you use?",
                                 QUESTION_TYPE_CHOICE,
-                                new Array("Hallucination Risk: Higher", "No: Continue to Question 2.", "Inference Cost: Token-based", "Data Required: 0 examples"),
-                                "No: Continue to Question 2.",
-                                "obj_module_1")
+                                new Array("Full Fine-Tuning once a year", "RAG with a vector database", "Few-shot prompting with all papers in the prompt", "Zero-shot prompting"),
+                                "RAG with a vector database",
+                                "obj_scenarios")
                 );
 
-test.AddQuestion( new Question ("q3",
-                                "What role does Decision Flowchart play in this context?",
+test.AddQuestion( new Question ("df_q3",
+                                "What does 'TCO' stand for in the context of AI architectural decisions?",
                                 QUESTION_TYPE_CHOICE,
-                                new Array("Hallucination Risk: Higher", "Setup Cost: None", "Higher", "Yes: Use RAG. Documents can be updated without retraining."),
-                                "Yes: Use RAG. Documents can be updated without retraining.",
-                                "obj_module_1")
+                                new Array("Technical Code Optimization", "Total Cost of Ownership", "Token Compression Output", "Trained Completion Object"),
+                                "Total Cost of Ownership",
+                                "obj_cost")
                 );
 
-test.AddQuestion( new Question ("q4",
-                                "Which statement about Decision Flowchart is accurate?",
+test.AddQuestion( new Question ("df_q4",
+                                "Which approach typically has the highest 'Upfront Effort' but can lead to low inference latency?",
                                 QUESTION_TYPE_CHOICE,
-                                new Array("No: Continue to Question 3.", "Domain behavior", "Inference Cost: Token-based", "Token-based"),
-                                "No: Continue to Question 3.",
-                                "obj_module_1")
+                                new Array("Prompt Engineering", "RAG", "Fine-Tuning", "API Integration"),
+                                "Fine-Tuning",
+                                "obj_matrix")
                 );
 
-test.AddQuestion( new Question ("q5",
-                                "What does Decision Flowchart involve?",
+test.AddQuestion( new Question ("df_q5",
+                                "When would a 'Hybrid' approach be most appropriate?",
                                 QUESTION_TYPE_CHOICE,
-                                new Array("Time to Deploy", "Time to Deploy: Minutes", "Knowledge: Use RAG. More reliable for factual grounding.", "Yes: Use Prompt Engineering. Start here always."),
-                                "Knowledge: Use RAG. More reliable for factual grounding.",
-                                "obj_module_1")
+                                new Array("When you have no data and no budget", "When you need both real-time factual accuracy (RAG) and specific brand tone (Fine-Tuning)", "When you only want to use one model for everything", "When you are building a simple calculator"),
+                                "When you need both real-time factual accuracy (RAG) and specific brand tone (Fine-Tuning)",
+                                "obj_scenarios")
                 );
 
-test.AddQuestion( new Question ("q6",
-                                "How is Decision Flowchart best defined?",
+test.AddQuestion( new Question ("df_q6",
+                                "Why does RAG typically increase token usage compared to Fine-Tuning for the same knowledge base?",
                                 QUESTION_TYPE_CHOICE,
-                                new Array("Behavior/Style: Use Fine-Tuning. Better for tone, format, domain language.", "0 examples", "Retrain model", "Hybrid Approaches"),
-                                "Behavior/Style: Use Fine-Tuning. Better for tone, format, domain language.",
-                                "obj_module_1")
+                                new Array("Because RAG models are less efficient", "Because RAG requires sending the retrieved context snippets along with every query", "Because RAG vectors are larger", "It doesn't; RAG uses fewer tokens"),
+                                "Because RAG requires sending the retrieved context snippets along with every query",
+                                "obj_cost")
                 );

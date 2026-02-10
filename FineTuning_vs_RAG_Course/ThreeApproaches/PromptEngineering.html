@@ -1,7 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" dir="ltr" lang="en-US">
 <head>
-    <title>Prompt Engineering - The First Line</title>
+    <title>Prompt Engineering - The Foundation</title>
     <style type="text/css" media="screen">
 		@import url( ../shared/style.css );
 	</style>
@@ -9,36 +9,48 @@
 	<script src="../shared/contentfunctions.js" type="text/javascript"></script>
 </head>
 <body>
-<h1>Prompt Engineering - The First Line</h1>
+<h1>Prompt Engineering: The Foundation</h1>
 
+<h2>What is Prompt Engineering?</h2>
+<p>Prompt engineering is the art and science of crafting the input to an LLM to get the desired output. It is the first step in any AI project because it requires zero infrastructure changes and zero training costs. Often, a well-engineered prompt can solve problems that initially seem to require fine-tuning.</p>
 
-<h2>What It Is</h2>
-<p>Prompt engineering is the art of crafting input text to get desired outputs from a <strong>pre-trained model without any modification</strong>. The model's weights remain unchanged.</p>
-
-<h2>Techniques</h2>
+<h2>Core Prompting Techniques</h2>
 <ul>
-    <li><strong>System prompts:</strong> Define role, constraints, and output format</li>
-    <li><strong>Few-shot examples:</strong> Show desired input-output patterns</li>
-    <li><strong>Chain of thought:</strong> Guide step-by-step reasoning</li>
-    <li><strong>XML/structured tags:</strong> Organize complex prompts</li>
+    <li><strong>Zero-Shot:</strong> Asking the model to perform a task without any examples.</li>
+    <li><strong>Few-Shot:</strong> Providing 2-5 examples of the desired input and output within the prompt.</li>
+    <li><strong>Chain-of-Thought (CoT):</strong> Instructing the model to "think step-by-step" before providing a final answer.</li>
+    <li><strong>System Instructions:</strong> Setting a persistent "persona" or "role" for the model (e.g., "You are a expert Python developer").</li>
 </ul>
 
-<h2>Strengths</h2>
-<ul>
-    <li><strong>Zero cost:</strong> No training, no infrastructure beyond API calls</li>
-    <li><strong>Instant iteration:</strong> Change the prompt and test immediately</li>
-    <li><strong>No data needed:</strong> Works with zero training examples</li>
-    <li><strong>Model-agnostic:</strong> Techniques work across providers</li>
-</ul>
+<h2>Advantages and Limitations</h2>
+<table>
+    <tr><th>Feature</th><th>Prompt Engineering</th></tr>
+    <tr><td class="rowheader">Pros</td><td>Fastest to implement, zero cost (other than tokens), works with any LLM.</td></tr>
+    <tr><td class="rowheader">Cons</td><td>Limited by context window, inconsistent for complex formatting, higher token cost per request.</td></tr>
+</table>
 
-<h2>Limitations</h2>
-<ul>
-    <li><strong>Context window limits:</strong> Can only provide so much context per request</li>
-    <li><strong>No knowledge injection:</strong> Cannot teach the model new facts</li>
-    <li><strong>Inconsistency:</strong> Complex prompts may produce variable results</li>
-    <li><strong>Per-request cost:</strong> Long system prompts increase token costs on every call</li>
-</ul>
+<h2>Example: Few-Shot Prompting</h2>
+<div class="code-block">
+<pre><code># Few-Shot Instruction for Sentiment Analysis
+"Determine the sentiment of the following movie reviews.
 
+Review: The movie was fantastic and the acting was superb!
+Sentiment: Positive
+
+Review: It was a complete waste of time. Avoid at all costs.
+Sentiment: Negative
+
+Review: The plot was interesting but the pacing was slow.
+Sentiment: Neutral
+
+Review: [User input goes here]
+Sentiment:"</code></pre>
+</div>
+
+<h2>Practical Strategy</h2>
+<blockquote>
+<strong>The Golden Rule:</strong> Always start with prompt engineering. Only move to RAG or Fine-Tuning if prompt engineering fails to meet your requirements for accuracy, knowledge, or cost-efficiency.
+</blockquote>
 
 <script type="text/javascript">
 </script>

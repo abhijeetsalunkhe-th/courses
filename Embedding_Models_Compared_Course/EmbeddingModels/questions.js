@@ -1,47 +1,63 @@
-test.AddQuestion( new Question ("q1",
-                                "What role does Choosing the Right Embedding Model play in this context?",
+test.AddQuestion( new Question ("em_q1",
+                                "What is the primary purpose of text embeddings in AI applications?",
                                 QUESTION_TYPE_CHOICE,
-                                new Array("Good for simple tasks", "Cohere embed-v3: $0.10", "Cohere", "Context length: Voyage-3 handles 32K tokens; others max at 512-8K"),
-                                "Context length: Voyage-3 handles 32K tokens; others max at 512-8K",
-                                "obj_module_1")
+                                new Array("To compress text for faster transmission", "To represent semantic meaning as dense vectors in N-dimensional space", "To translate text between different languages", "To check for grammatical errors in a document"),
+                                "To represent semantic meaning as dense vectors in N-dimensional space",
+                                "obj_embedding_fundamentals")
                 );
 
-test.AddQuestion( new Question ("q2",
-                                "Which of the following best describes Choosing the Right Embedding Model?",
+test.AddQuestion( new Question ("em_q2",
+                                "Which mathematical formula is most commonly used to measure the similarity between two embedding vectors?",
                                 QUESTION_TYPE_CHOICE,
-                                new Array("Multilingual needs: Cohere embed-v3 supports 100+ languages natively", "~12 GB", "bge-large-en-v1.5", "Highest quality"),
-                                "Multilingual needs: Cohere embed-v3 supports 100+ languages natively",
-                                "obj_module_1")
+                                new Array("Euclidean distance", "Manhattan distance", "Cosine similarity", "Pearson correlation"),
+                                "Cosine similarity",
+                                "obj_embedding_fundamentals")
                 );
 
-test.AddQuestion( new Question ("q3",
-                                "What is a key characteristic of Choosing the Right Embedding Model?",
+test.AddQuestion( new Question ("em_q3",
+                                "A developer needs to build a RAG pipeline for 50-page technical manuals. Which model feature is MOST critical for this use case?",
                                 QUESTION_TYPE_CHOICE,
-                                new Array("Slower", "Good general purpose", "Self-hosting: BGE models can run on your infrastructure (no API costs)", "OpenAI text-embedding-3-small: $0.02"),
-                                "Self-hosting: BGE models can run on your infrastructure (no API costs)",
-                                "obj_module_1")
+                                new Array("Low dimensionality", "A large context window (e.g., 32K tokens)", "Low per-token cost", "Open-source licensing"),
+                                "A large context window (e.g., 32K tokens)",
+                                "obj_choosing_models")
                 );
 
-test.AddQuestion( new Question ("q4",
-                                "What distinguishes Choosing the Right Embedding Model from other approaches?",
+test.AddQuestion( new Question ("em_q4",
+                                "What is a unique feature of OpenAI's Matryoshka embeddings?",
                                 QUESTION_TYPE_CHOICE,
-                                new Array("Semantic Similarity: Most modern models are competitive", "Cost: OpenAI small is cheapest per token; self-hosted BGE is free after GPU", "Voyage voyage-3: $0.06", "Choosing the Right Embedding Model"),
-                                "Cost: OpenAI small is cheapest per token; self-hosted BGE is free after GPU",
-                                "obj_module_1")
+                                new Array("They can only be used with GPT-4", "They allow embeddings to be truncated to smaller sizes with minimal quality loss", "They are specifically designed for image data", "They require a specialized vector database"),
+                                "They allow embeddings to be truncated to smaller sizes with minimal quality loss",
+                                "obj_choosing_models")
                 );
 
-test.AddQuestion( new Question ("q5",
-                                "Which statement about Choosing the Right Embedding Model is accurate?",
+test.AddQuestion( new Question ("em_q5",
+                                "Scenario: Your company has strict data privacy requirements and cannot send data to third-party APIs. Which model should you choose?",
                                 QUESTION_TYPE_CHOICE,
-                                new Array("Ecosystem: Match your LLM provider (Voyage for Claude, Google for Gemini)", "Good for simple tasks", "Best price/performance for API", "3072: ~12 GB"),
-                                "Ecosystem: Match your LLM provider (Voyage for Claude, Google for Gemini)",
-                                "obj_module_1")
+                                new Array("OpenAI text-embedding-3-large", "Cohere embed-v3", "BAAI bge-large-en-v1.5 (Self-hosted)", "Voyage-3"),
+                                "BAAI bge-large-en-v1.5 (Self-hosted)",
+                                "obj_choosing_models")
                 );
 
-test.AddQuestion( new Question ("q6",
-                                "What is an important aspect of MTEB Benchmark Results?",
+test.AddQuestion( new Question ("em_q6",
+                                "Which benchmark is considered the industry standard for evaluating embedding models?",
                                 QUESTION_TYPE_CHOICE,
-                                new Array("text-embedding-3-small", "Ecosystem: Match your LLM provider (Voyage for Claude, Google for Gemini)", "Retrieval (NDCG@10): Voyage-3 and OpenAI large consistently lead", "Self-hosting: BGE models can run on your infrastructure (no API costs)"),
-                                "Retrieval (NDCG@10): Voyage-3 and OpenAI large consistently lead",
-                                "obj_module_1")
+                                new Array("GLUE", "SuperGLUE", "MTEB (Massive Text Embedding Benchmark)", "SQuAD"),
+                                "MTEB (Massive Text Embedding Benchmark)",
+                                "obj_embedding_fundamentals")
+                );
+
+test.AddQuestion( new Question ("em_q7",
+                                "When is fine-tuning an embedding model typically recommended?",
+                                QUESTION_TYPE_CHOICE,
+                                new Array("For every new application to ensure maximum accuracy", "When the data contains highly specialized vocabulary not present in general training sets", "To reduce the dimensionality of the vectors", "To speed up the inference time of the API"),
+                                "When the data contains highly specialized vocabulary not present in general training sets",
+                                "obj_finetuning")
+                );
+
+test.AddQuestion( new Question ("em_q8",
+                                "What is a major trade-off when increasing the number of dimensions in an embedding model?",
+                                QUESTION_TYPE_CHOICE,
+                                new Array("Increased accuracy but higher storage and search latency", "Decreased accuracy but lower cost", "Better multilingual support but shorter context window", "No trade-offs; higher dimensions are always better"),
+                                "Increased accuracy but higher storage and search latency",
+                                "obj_embedding_fundamentals")
                 );

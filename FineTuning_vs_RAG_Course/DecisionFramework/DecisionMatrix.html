@@ -11,43 +11,75 @@
 <body>
 <h1>The Decision Matrix</h1>
 
+<h2>Architectural Decision Flow</h2>
+<p>Use the following logic to determine the most cost-effective and performant strategy for your AI application.</p>
 
-<h2>Decision Flowchart</h2>
-<p>Ask these questions in order to choose the right approach:</p>
+<div class="workflow-diagram">
+    <div class="workflow-step">Is knowledge static?</div>
+    <div class="workflow-arrow"></div>
+    <div class="workflow-step">No: RAG</div>
+    <div class="workflow-arrow"></div>
+    <div class="workflow-step">Yes: Fine-Tune?</div>
+    <div class="workflow-arrow"></div>
+    <div class="workflow-step">Start: Prompt Eng.</div>
+</div>
 
-<h3>Question 1: Does the model already know enough?</h3>
-<ul>
-    <li><strong>Yes:</strong> Use <strong>Prompt Engineering</strong>. Start here always.</li>
-    <li><strong>No:</strong> Continue to Question 2.</li>
-</ul>
-
-<h3>Question 2: Does the knowledge change frequently?</h3>
-<ul>
-    <li><strong>Yes:</strong> Use <strong>RAG</strong>. Documents can be updated without retraining.</li>
-    <li><strong>No:</strong> Continue to Question 3.</li>
-</ul>
-
-<h3>Question 3: Do you need behavioral change or knowledge?</h3>
-<ul>
-    <li><strong>Knowledge:</strong> Use <strong>RAG</strong>. More reliable for factual grounding.</li>
-    <li><strong>Behavior/Style:</strong> Use <strong>Fine-Tuning</strong>. Better for tone, format, domain language.</li>
-</ul>
-
-<h2>Comparison Summary</h2>
+<h2>Strategic Comparison Matrix</h2>
 <table>
-    <tr><th>Criteria</th><th>Prompt Eng.</th><th>RAG</th><th>Fine-Tuning</th></tr>
-    <tr><td>Setup Cost</td><td>None</td><td>Medium</td><td>High</td></tr>
-    <tr><td>Time to Deploy</td><td>Minutes</td><td>Days</td><td>Weeks</td></tr>
-    <tr><td>Data Required</td><td>0 examples</td><td>Documents</td><td>1K+ examples</td></tr>
-    <tr><td>Knowledge Updates</td><td>Instant</td><td>Re-index docs</td><td>Retrain model</td></tr>
-    <tr><td>Inference Cost</td><td>Token-based</td><td>Token + retrieval</td><td>Token only</td></tr>
-    <tr><td>Hallucination Risk</td><td>Higher</td><td>Lower (grounded)</td><td>Medium</td></tr>
-    <tr><td>Best For</td><td>Format/style</td><td>Knowledge Q&A</td><td>Domain behavior</td></tr>
+    <tr>
+        <th>Criteria</th>
+        <th>Prompt Eng.</th>
+        <th>RAG</th>
+        <th>Fine-Tuning</th>
+    </tr>
+    <tr>
+        <td class="rowheader">Primary Goal</td>
+        <td>Quick prototyping</td>
+        <td>Factual accuracy</td>
+        <td>Behavior/Style</td>
+    </tr>
+    <tr>
+        <td class="rowheader">Technical Effort</td>
+        <td>Low</td>
+        <td>Medium</td>
+        <td>High</td>
+    </tr>
+    <tr>
+        <td class="rowheader">Knowledge Cutoff</td>
+        <td>Fixed</td>
+        <td>Dynamic (Current)</td>
+        <td>Fixed (Retrain needed)</td>
+    </tr>
+    <tr>
+        <td class="rowheader">Latentcy</td>
+        <td>Fast</td>
+        <td>Slow (Retrieval step)</td>
+        <td>Fast</td>
+    </tr>
+    <tr>
+        <td class="rowheader">Data Required</td>
+        <td>None</td>
+        <td>Unlabeled docs</td>
+        <td>100+ Labeled pairs</td>
+    </tr>
 </table>
 
-<h2>Hybrid Approaches</h2>
-<p>In practice, the best solutions often combine approaches: <strong>Fine-tuned model + RAG + careful prompting</strong>. Use fine-tuning for domain language and style, RAG for current knowledge, and prompt engineering for task-specific instructions.</p>
+<h2>Complex Decision Scenarios</h2>
 
+<h3>Scenario 1: Customer Support Bot</h3>
+<p><strong>Requirement:</strong> Needs to know latest pricing and follow specific brand safety guidelines.</p>
+<p><strong>Solution:</strong> Hybrid. Use <strong>RAG</strong> for pricing data and <strong>Prompt Engineering</strong> (or Fine-Tuning) for brand safety and tone.</p>
+
+<h3>Scenario 2: Code Generation for Proprietary API</h3>
+<p><strong>Requirement:</strong> Must strictly follow unique syntax rules for an internal framework that is 5 years old.</p>
+<p><strong>Solution:</strong> <strong>Fine-Tuning</strong>. The syntax is static and requires deep behavioral internalization that few-shot prompting might struggle with at scale.</p>
+
+<h2>Evaluating Total Cost of Ownership (TCO)</h2>
+<ul>
+    <li><strong>Inference Costs:</strong> RAG increases token count (paying for context). Fine-tuning may allow for smaller models, reducing per-token cost.</li>
+    <li><strong>Maintenance Costs:</strong> RAG requires monitoring a vector DB. Fine-tuning requires periodic retraining cycles.</li>
+    <li><strong>Development Time:</strong> Prompt engineering is "free" development time compared to the weeks needed for a robust fine-tuning pipeline.</li>
+</ul>
 
 <script type="text/javascript">
 </script>
