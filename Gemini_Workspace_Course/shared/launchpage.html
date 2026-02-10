@@ -189,17 +189,25 @@
         return String(val);
     }
 
-        var pageArray = new Array(4);
+        var pageArray = new Array(8);
 
     // Course Introduction
-    pageArray[0] = "Introduction/Introduction.html";
+    pageArray[0] = "../Introduction/Introduction.html";
 
-    // AI-Powered Productivity
-    pageArray[1] = "AIProductivity/DocsSlidesMail.html";
-    pageArray[2] = "AIProductivity/SheetsAutomation.html";
+    // Module 1: AI-Powered Productivity
+    pageArray[1] = "../AIProductivity/DocsSlidesMail.html";
+    pageArray[2] = "../AIProductivity/SheetsAutomation.html";
+    pageArray[3] = "../Assessment1/assessment.html";
+
+    // Module 2: Enterprise Workflows
+    pageArray[4] = "../EnterpriseWorkflows/SecurityCompliance.html";
+    pageArray[5] = "../Assessment2/assessment.html";
+
+    // Pros and Cons
+    pageArray[6] = "../ProsAndCons.html";
 
     // Final Comprehensive Assessment
-    pageArray[3] = "FinalAssessment/assessment.html"; // 25 unique questions
+    pageArray[7] = "../FinalAssessment/assessment.html"; // 25 unique questions
 
     var currentPage = null;
     var startTimeStamp = null;
@@ -271,10 +279,10 @@
             prevButton.style.cursor = "not-allowed";
         }
         else if (currentPage == (pageArray.length - 1)){
-            nextButton.disabled = true;
-            nextButton.style.opacity = "0.5";
-            nextButton.style.cursor = "not-allowed";
+            nextButton.style.display = "none";
             reachedEnd = true;
+        } else {
+            nextButton.style.display = "inline-block";
         }
     }
     

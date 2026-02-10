@@ -189,17 +189,24 @@
         return String(val);
     }
 
-        var pageArray = new Array(4);
+        var pageArray = new Array(7);
 
     // Course Introduction
-    pageArray[0] = "Introduction/Introduction.html";
+    pageArray[0] = "../Introduction/Introduction.html";
 
-    // GenAI Architecture
-    pageArray[1] = "GenAIArchitecture/ArchitecturePatterns.html";
-    pageArray[2] = "GenAIArchitecture/AsyncProcessingScaling.html";
+    // Module 1: GenAI Architecture Patterns
+    pageArray[1] = "../GenAIArchitecture/ArchitecturePatterns.html";
+    pageArray[2] = "../Assessment1/assessment.html";
+
+    // Module 2: Async Processing and Scaling
+    pageArray[3] = "../GenAIArchitecture/AsyncProcessingScaling.html";
+    pageArray[4] = "../Assessment2/assessment.html";
+
+    // Pros and Cons
+    pageArray[5] = "../ProsAndCons.html";
 
     // Final Comprehensive Assessment
-    pageArray[3] = "FinalAssessment/assessment.html"; // 25 unique questions
+    pageArray[6] = "../FinalAssessment/assessment.html"; // 25 unique questions
 
     var currentPage = null;
     var startTimeStamp = null;
@@ -271,10 +278,10 @@
             prevButton.style.cursor = "not-allowed";
         }
         else if (currentPage == (pageArray.length - 1)){
-            nextButton.disabled = true;
-            nextButton.style.opacity = "0.5";
-            nextButton.style.cursor = "not-allowed";
+            nextButton.style.display = "none";
             reachedEnd = true;
+        } else {
+            nextButton.style.display = "inline-block";
         }
     }
     

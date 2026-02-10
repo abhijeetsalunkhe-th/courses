@@ -23,8 +23,12 @@
 		<resource identifier="resource_1" type="webcontent" adlcp:scormtype="sco" href="shared/launchpage.html">
       <file href="Introduction/Introduction.html"/>
       <file href="GenAIArchitecture/ArchitecturePatterns.html"/>
+      <file href="Assessment1/assessment.html"/>
       <file href="GenAIArchitecture/AsyncProcessingScaling.html"/>
-      <file href="GenAIArchitecture/questions.js"/>
+      <file href="Assessment2/assessment.html"/>
+      <file href="ProsAndCons.html"/>
+      <file href="GenAIArchitecture/m1/questions.js"/>
+      <file href="GenAIArchitecture/m2/questions.js"/>
       <file href="FinalAssessment/assessment.html"/>
       <file href="FinalAssessment/questions.js"/>
       <file href="shared/assessmenttemplate.html"/>

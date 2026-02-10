@@ -11,50 +11,98 @@
 <body>
 <h1>What Is Extended Thinking?</h1>
 
-
 <h2>Overview</h2>
-<p>Extended thinking gives Claude a dedicated <strong>"thinking" phase</strong> before generating its response. During this phase, Claude can reason through complex problems, explore multiple approaches, and arrive at more accurate answers.</p>
+<p>Extended Thinking is a sophisticated capability that allows Claude to engage in a dedicated <strong>reasoning phase</strong> before producing its final output. Unlike standard responses where the model generates text sequentially, Extended Thinking provides a "private" workspace for the model to work through complex logic, evaluate multiple hypotheses, and self-correct.</p>
 
-<h2>How It Works</h2>
-<ul>
-    <li><strong>Thinking tokens:</strong> Claude uses internal reasoning tokens (visible to you) before the final response</li>
-    <li><strong>Budget control:</strong> You set a <code>max_tokens</code> budget for thinking</li>
-    <li><strong>Transparent reasoning:</strong> You can see Claude's thought process in <code>thinking</code> content blocks</li>
-</ul>
-
-<h2>API Usage</h2>
-<div class="code-block">
-<pre><code>response = client.messages.create(
-    model="claude-sonnet-4-20250514",
-    max_tokens=16000,
-    thinking={
-        "type": "enabled",
-        "budget_tokens": 10000  # Up to 10K tokens for thinking
-    },
-    messages=[{
-        "role": "user",
-        "content": "Analyze the time complexity of this recursive algorithm..."
-    }]
-)
-
-# Access thinking and response separately
-for block in response.content:
-    if block.type == "thinking":
-        print("THINKING:", block.thinking)
-    elif block.type == "text":
-        print("RESPONSE:", block.text)</code></pre>
+<div class="workflow-diagram">
+    <div class="workflow-step">
+        <strong>User Input</strong>
+        API Request with Thinking Enabled
+    </div>
+    <div class="workflow-arrow">➜</div>
+    <div class="workflow-step">
+        <strong>Thinking Phase</strong>
+        Internal reasoning tokens (hidden from final output)
+    </div>
+    <div class="workflow-arrow">➜</div>
+    <div class="workflow-step">
+        <strong>Final Response</strong>
+        Refined, accurate answer based on reasoning
+    </div>
 </div>
 
-<h2>When to Use Extended Thinking</h2>
+<h2>The Mechanics of Thinking</h2>
+<ul>
+    <li><strong>Thinking Tokens:</strong> These are internal tokens used by the model during the reasoning phase. They are billed at the same rate as output tokens but are distinct from the final visible response.</li>
+    <li><strong>Budget Control:</strong> Developers can set a <code>budget_tokens</code> parameter to control how much "thought" Claude is allowed to use for a given request.</li>
+    <li><strong>Transparency:</strong> While the thinking process is internal, the API returns it in a specific <code>thinking</code> block, allowing developers to monitor or display the model's reasoning process if desired.</li>
+</ul>
+
+<h2>API Implementation</h2>
+<p>To enable Extended Thinking, you must use a supported model (e.g., Claude 3.7 Sonnet) and include the <code>thinking</code> configuration in your API call.</p>
+
+<div class="code-block">
+<pre><code>import anthropic
+
+client = anthropic.Anthropic()
+
+response = client.messages.create(
+    model="claude-3-7-sonnet-20250219",
+    max_tokens=20000,
+    thinking={
+        "type": "enabled",
+        "budget_tokens": 8000
+    },
+    messages=[
+        {"role": "user", "content": "Analyze this complex legacy codebase for potential race conditions..."}
+    ]
+)
+
+# The response contains both thinking and text blocks
+for block in response.content:
+    if block.type == "thinking":
+        print(f"Claude's Thoughts: {block.thinking}")
+    elif block.type == "text":
+        print(f"Final Answer: {block.text}")</code></pre>
+</div>
+
+<h2>When to Leverage Extended Thinking</h2>
+<p>Extended Thinking is most effective for tasks that require deep analysis, multi-step planning, or complex problem-solving. It is <strong>not</strong> necessary for simple tasks where the answer is straightforward.</p>
+
 <table>
-    <tr><th>Good Candidates</th><th>Not Necessary</th></tr>
-    <tr><td>Complex math/logic problems</td><td>Simple factual questions</td></tr>
-    <tr><td>Multi-step debugging</td><td>Text formatting/editing</td></tr>
-    <tr><td>Architecture design decisions</td><td>Translations</td></tr>
-    <tr><td>Code review with deep analysis</td><td>Summarization of short texts</td></tr>
-    <tr><td>Security vulnerability analysis</td><td>List generation</td></tr>
+    <tr>
+        <th>Use Case Category</th>
+        <th>Example Task</th>
+        <th>Why use Extended Thinking?</th>
+    </tr>
+    <tr>
+        <td class="rowheader">Complex Coding</td>
+        <td>Refactoring large functions</td>
+        <td>Allows Claude to map dependencies and edge cases before writing code.</td>
+    </tr>
+    <tr>
+        <td class="rowheader">Mathematical Reasoning</td>
+        <td>Solving multi-stage proofs</td>
+        <td>Ensures each logical step is verified before proceeding to the next.</td>
+    </tr>
+    <tr>
+        <td class="rowheader">Security Analysis</td>
+        <td>Vulnerability research</td>
+        <td>Enables thorough exploration of potential attack vectors and exploit paths.</td>
+    </tr>
+    <tr>
+        <td class="rowheader">Architectural Design</td>
+        <td>System scalability planning</td>
+        <td>Facilitates the evaluation of multiple architectural trade-offs.</td>
+    </tr>
 </table>
 
+<h2>Key Characteristics</h2>
+<ul>
+    <li><strong>Chain of Thought:</strong> The model inherently uses Chain-of-Thought reasoning without needing explicit "think step-by-step" prompts.</li>
+    <li><strong>Self-Correction:</strong> Claude can identify errors in its own reasoning during the thinking phase and adjust its final response accordingly.</li>
+    <li><strong>Consistency:</strong> Leads to more consistent performance on high-difficulty benchmarks.</li>
+</ul>
 
 <script type="text/javascript">
 </script>

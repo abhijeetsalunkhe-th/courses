@@ -346,3 +346,55 @@ input[type="button"]:active, input[type="submit"]:active {
 		margin: 0.5rem 0;
 	}
 }
+
+/* Workflow Diagram Styles */
+.workflow-diagram {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    padding: 2rem;
+    background: #f8fafc;
+    border-radius: 16px;
+    margin: 2rem 0;
+    border: 1px solid #e2e8f0;
+    overflow-x: auto;
+}
+
+.workflow-step {
+    background: white;
+    border: 2px solid #F16F00;
+    border-radius: 12px;
+    padding: 1rem;
+    text-align: center;
+    min-width: 150px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    z-index: 1;
+}
+
+.workflow-step strong {
+    display: block;
+    color: #F16F00;
+    margin-bottom: 0.5rem;
+}
+
+.workflow-arrow {
+    font-size: 2rem;
+    color: #F16F00;
+    margin: 0 1rem;
+    user-select: none;
+}
+
+.code-block {
+    background: #1e1e1e;
+    color: #d4d4d4;
+    padding: 1.5rem;
+    border-radius: 8px;
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+    font-size: 0.9rem;
+    overflow-x: auto;
+    margin: 1.5rem 0;
+}
+
+.code-block code {
+    color: inherit;
+}

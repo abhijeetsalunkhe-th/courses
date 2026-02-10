@@ -1,0 +1,102 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" dir="ltr" lang="en-US">
+<head>
+    <title>Advanced Prompting Strategies for Extended Thinking</title>
+    <style type="text/css" media="screen">
+		@import url( ../shared/style.css );
+	</style>
+	<script src="../shared/scormfunctions.js" type="text/javascript"></script>
+	<script src="../shared/contentfunctions.js" type="text/javascript"></script>
+</head>
+<body>
+<h1>Advanced Prompting Strategies</h1>
+
+<p>Extended Thinking changes how we approach prompt engineering. Instead of teaching the model <em>how</em> to think (e.g., via "Step-by-step" instructions), we focus on providing the model with the <strong>space and context</strong> it needs to reason effectively.</p>
+
+<h2>Synergistic Prompting Techniques</h2>
+<ul>
+    <li><strong>Budget-Aware Instructions:</strong> Explicitly tell Claude how to prioritize its thinking budget.
+        <br/><em>Example: "Use your thinking budget to exhaustively check for edge cases in this security protocol."</em>
+    </li>
+    <li><strong>Delimited Multi-Step Tasks:</strong> Breakdown complex requests into clear phases. Even though Claude thinks internally, structured prompts help organize its reasoning.</li>
+    <li><strong>Self-Critique Loops:</strong> Ask Claude to use its thinking phase to evaluate its own initial assumptions.
+        <br/><em>Example: "Before answering, consider at least three alternative interpretations of this legal clause."</em>
+    </li>
+</ul>
+
+<h2>Scenario: Deep Code Review</h2>
+<p>In this scenario, we use Extended Thinking to perform a comprehensive security audit of a smart contract.</p>
+
+<div class="code-block">
+<pre><code># Prompting for depth
+user_prompt = """
+Audit this Solidity smart contract for reentrancy vulnerabilities.
+1. Use your thinking phase to simulate multiple transaction flows.
+2. Specifically look for state changes that happen after external calls.
+3. Provide a detailed mitigation plan for any findings.
+"""
+
+response = client.messages.create(
+    model="claude-3-7-sonnet-20250219",
+    max_tokens=10000,
+    thinking={"type": "enabled", "budget_tokens": 6000},
+    messages=[{"role": "user", "content": user_prompt}]
+)</code></pre>
+</div>
+
+<h2>The "Room to Reason" Pattern</h2>
+<p>One of the most effective strategies is simply giving Claude a large enough budget and asking it to explore a problem space before committing. This is particularly useful for:</p>
+<ul>
+    <li><strong>Open-ended Research:</strong> Exploring scientific literature or complex data sets.</li>
+    <li><strong>Creative Brainstorming:</strong> Generating novel ideas while adhering to strict world-building rules.</li>
+    <li><strong>Strategic Planning:</strong> Evaluating multi-year business goals against market variables.</li>
+</ul>
+
+<h2>Common Pitfalls to Avoid</h2>
+<table>
+    <tr>
+        <th>Pitfall</th>
+        <th>Description</th>
+        <th>Solution</th>
+    </tr>
+    <tr>
+        <td class="rowheader">Micromanagement</td>
+        <td>Giving too many "how to think" instructions that conflict with the model's internal reasoning.</td>
+        <td>Focus on <em>what</em> to analyze, not <em>how</em> to analyze it.</td>
+    </tr>
+    <tr>
+        <td class="rowheader">Budget Starvation</td>
+        <td>Setting a <code>budget_tokens</code> that is too low for the requested complexity.</td>
+        <td>Match the budget to the task; use at least 4k tokens for non-trivial logic.</td>
+    </tr>
+    <tr>
+        <td class="rowheader">Instruction Overload</td>
+        <td>Adding redundant CoT instructions (e.g., "Think step-by-step") when thinking is already enabled.</td>
+        <td>Keep prompts concise; Extended Thinking handles the step-by-step logic automatically.</td>
+    </tr>
+</table>
+
+<h2>Workflow Integration</h2>
+<p>Consider how Extended Thinking fits into your overall AI workflow. It is often the "Analysis" step in a larger pipeline:</p>
+
+<div class="workflow-diagram">
+    <div class="workflow-step">
+        <strong>Input Gathering</strong>
+        Collect raw data/context
+    </div>
+    <div class="workflow-arrow">➜</div>
+    <div class="workflow-step">
+        <strong>Deep Analysis</strong>
+        Extended Thinking (Analyze & Reasoning)
+    </div>
+    <div class="workflow-arrow">➜</div>
+    <div class="workflow-step">
+        <strong>Action/Output</strong>
+        Execute code or generate report
+    </div>
+</div>
+
+<script type="text/javascript">
+</script>
+</body>
+</html>

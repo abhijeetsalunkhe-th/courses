@@ -1,35 +1,211 @@
-// Final Comprehensive Assessment
-// Covers all 1 modules
+// Final Comprehensive Assessment for Claude Extended Thinking
 
-
-test.AddQuestion( new Question ("q1",
-                                "From the UnderstandingET section: What is Best Practices?",
+test.AddQuestion( new Question ("com.scorm.claude.et.final.q1",
+                                "Which Claude model version first introduced the formal Extended Thinking feature as described in this course?",
                                 QUESTION_TYPE_CHOICE,
-                                new Array("5,000-10,000 tokens: Complex reasoning, code debugging, architectural analysis", "Combine with CoT prompting: Ask Claude to \"reason carefully\" even with thinking enabled", "Start small: Begin with a low budget and increase if quality is insufficient", "Text formatting/editing"),
-                                "Combine with CoT prompting: Ask Claude to \"reason carefully\" even with thinking enabled",
+                                new Array("Claude 2.1", "Claude 3.7 Sonnet", "Claude 3 Opus", "Claude 3.5 Haiku"),
+                                "Claude 3.7 Sonnet",
                                 "obj_final_assessment")
-                );
+                ); // Correct: B
 
-test.AddQuestion( new Question ("q2",
-                                "Regarding UnderstandingET: What is a key feature of How It Works?",
+test.AddQuestion( new Question ("com.scorm.claude.et.final.q2",
+                                "In the API usage metadata, which field specifically tracks the number of tokens used for internal reasoning?",
                                 QUESTION_TYPE_CHOICE,
-                                new Array("Code review with deep analysis", "Translations", "Thinking tokens: Claude uses internal reasoning tokens (visible to you) before the fina...", "Budget Token Guidelines"),
-                                "Thinking tokens: Claude uses internal reasoning tokens (visible to you) before the fina...",
+                                new Array("input_tokens", "cache_creation_input_tokens", "thinking_tokens", "total_tokens"),
+                                "thinking_tokens",
                                 "obj_final_assessment")
-                );
+                ); // Correct: C
 
-test.AddQuestion( new Question ("q3",
-                                "From UnderstandingET: How does How It Works work?",
+test.AddQuestion( new Question ("com.scorm.claude.et.final.q3",
+                                "In an enterprise environment with a strictly capped AI budget, what is the best policy for deploying Extended Thinking for non-critical tasks?",
                                 QUESTION_TYPE_CHOICE,
-                                new Array("Code review with deep analysis: Summarization of short texts", "Security vulnerability analysis", "Thinking tokens: Claude uses internal reasoning tokens (visible to you) before the fina...", "Budget control: You set a max_tokens budget for thinking"),
-                                "Budget control: You set a max_tokens budget for thinking",
+                                new Array("Enable it for all employees by default regardless of task", "Always use the maximum possible budget to ensure accuracy", "Disable thinking tokens for all users to prevent any cost", "Implement a reasoning proxy that applies dynamic budget limits based on task classification"),
+                                "Implement a reasoning proxy that applies dynamic budget limits based on task classification",
                                 "obj_final_assessment")
-                );
+                ); // Correct: D (Unique)
 
-test.AddQuestion( new Question ("q4",
-                                "In the context of UnderstandingET: Which of the following describes How It Works?",
+test.AddQuestion( new Question ("com.scorm.claude.et.final.q4",
+                                "What happens if a developer sets 'budget_tokens' to a value larger than 'max_tokens' in an Anthropic API request?",
                                 QUESTION_TYPE_CHOICE,
-                                new Array("Transparent reasoning: You can see Claude\'s thought process in thinking content blocks", "Budget Token Guidelines", "Thinking tokens are billed at the output token rate. A 10,000-token thinking budget add...", "Text formatting/editing"),
-                                "Transparent reasoning: You can see Claude\'s thought process in thinking content blocks",
+                                new Array("The request fails with a validation error (400)", "The budget_tokens is automatically capped at max_tokens", "The max_tokens is ignored and reasoning proceeds normally", "The model produces a shorter response without thinking"),
+                                "The request fails with a validation error (400)",
                                 "obj_final_assessment")
-                );
+                ); // Correct: A (Unique)
+
+test.AddQuestion( new Question ("com.scorm.claude.et.final.q5",
+                                "In a scenario involving deep scientific research, why would a researcher prefer a high thinking budget (e.g., 32,000 tokens)?",
+                                QUESTION_TYPE_CHOICE,
+                                new Array("To ensure the model uses more creative and poetic language", "To allow the model to exhaustively evaluate complex data and hypotheses", "To force the model to search more academic databases simultaneously", "To reduce the latency of the final response"),
+                                "To allow the model to exhaustively evaluate complex data and hypotheses",
+                                "obj_final_assessment")
+                ); // Correct: B
+
+test.AddQuestion( new Question ("com.scorm.claude.et.final.q6",
+                                "When Claude stops reasoning because it has hit its allotted thinking limit, what is the stop_reason returned by the API?",
+                                QUESTION_TYPE_CHOICE,
+                                new Array("end_turn", "stop_sequence", "max_tokens", "budget_exceeded"),
+                                "max_tokens",
+                                "obj_final_assessment")
+                ); // Correct: C
+
+test.AddQuestion( new Question ("com.scorm.claude.et.final.q7",
+                                "What is the key difference between 'thinking' and 'text' blocks in the API response?",
+                                QUESTION_TYPE_CHOICE,
+                                new Array("Thinking blocks are for images, text blocks are for code", "Thinking blocks are encrypted, text blocks are plain text", "Thinking blocks are generated by a separate model", "Thinking blocks contain the model's reasoning process, while text blocks contain the final answer"),
+                                "Thinking blocks contain the model's reasoning process, while text blocks contain the final answer",
+                                "obj_final_assessment")
+                ); // Correct: D
+
+test.AddQuestion( new Question ("com.scorm.claude.et.final.q8",
+                                "For a mobile application where users expect instant replies, what is the primary drawback of enabling a large thinking budget?",
+                                QUESTION_TYPE_CHOICE,
+                                new Array("Increased latency and potential user frustration", "Reduced battery life of the server", "The app will require a special license from Apple/Google", "Thinking tokens cannot be displayed on small screens"),
+                                "Increased latency and potential user frustration",
+                                "obj_final_assessment")
+                ); // Correct: A
+
+test.AddQuestion( new Question ("com.scorm.claude.et.final.q9",
+                                "Which parameter is responsible for setting the hard limit on the internal reasoning phase of an API call?",
+                                QUESTION_TYPE_CHOICE,
+                                new Array("reasoning_depth", "budget_tokens", "thinking_limit", "max_output_tokens"),
+                                "budget_tokens",
+                                "obj_final_assessment")
+                ); // Correct: B
+
+test.AddQuestion( new Question ("com.scorm.claude.et.final.q10",
+                                "What capability allows Claude to identify and fix errors in its logic before the user sees the output?",
+                                QUESTION_TYPE_CHOICE,
+                                new Array("External plugin validation", "Human-in-the-loop review", "Internal self-correction during the thinking phase", "Automatic unit test generation"),
+                                "Internal self-correction during the thinking phase",
+                                "obj_final_assessment")
+                ); // Correct: C
+
+test.AddQuestion( new Question ("com.scorm.claude.et.final.q11",
+                                "A legal professional is using Claude to cross-reference 50 conflicting clauses across multiple contracts. Why is Extended Thinking beneficial here?",
+                                QUESTION_TYPE_CHOICE,
+                                new Array("It can translate the contract into 50 languages at once", "It makes the model more likely to agree with the lawyer's perspective", "It can generate a summary in the style of a pirate", "It provides the reasoning space to cross-reference multiple sections before reaching a conclusion"),
+                                "It provides the reasoning space to cross-reference multiple sections before reaching a conclusion",
+                                "obj_final_assessment")
+                ); // Correct: D
+
+test.AddQuestion( new Question ("com.scorm.claude.et.final.q12",
+                                "When 'thinking' is enabled, what is the behavior of the model regarding input tokens in the response metadata?",
+                                QUESTION_TYPE_CHOICE,
+                                new Array("Input tokens are tracked normally, while thinking tokens are added to the output count", "Thinking tokens replace input tokens entirely", "Input tokens are doubled when thinking is on", "Input tokens are only counted if the request succeeds within 2 seconds"),
+                                "Input tokens are tracked normally, while thinking tokens are added to the output count",
+                                "obj_final_assessment")
+                ); // Correct: A (Unique)
+
+test.AddQuestion( new Question ("com.scorm.claude.et.final.q13",
+                                "How does Extended Thinking impact 'Chain-of-Thought' (CoT) prompting requirements?",
+                                QUESTION_TYPE_CHOICE,
+                                new Array("It makes manual CoT prompting more difficult to implement", "It automates the CoT process, reducing the need for explicit 'think step-by-step' instructions", "It requires the user to write the CoT for the model first", "It only works if you use exactly 5 examples in the prompt"),
+                                "It automates the CoT process, reducing the need for explicit 'think step-by-step' instructions",
+                                "obj_final_assessment")
+                ); // Correct: B
+
+test.AddQuestion( new Question ("com.scorm.claude.et.final.q14",
+                                "When refactoring a legacy codebase, what is the 'Thinking Phase' used for?",
+                                QUESTION_TYPE_CHOICE,
+                                new Array("Uploading the code to a secure cloud storage", "Generating promotional marketing for the code", "Mapping dependencies and analyzing edge cases before writing code", "Automatically deleting old files"),
+                                "Mapping dependencies and analyzing edge cases before writing code",
+                                "obj_final_assessment")
+                ); // Correct: C
+
+test.AddQuestion( new Question ("com.scorm.claude.et.final.q15",
+                                "When using streaming with Extended Thinking, what is the 'type' of the delta that contains reasoning content?",
+                                QUESTION_TYPE_CHOICE,
+                                new Array("message_delta", "text_delta", "input_delta", "thinking_delta"),
+                                "thinking_delta",
+                                "obj_final_assessment")
+                ); // Correct: D (Rebalanced and Unique)
+
+test.AddQuestion( new Question ("com.scorm.claude.et.final.q16",
+                                "What is a significant advantage of having access to the 'thinking' block in the API response for security developers?",
+                                QUESTION_TYPE_CHOICE,
+                                new Array("It allows developers to audit the model's logic for accuracy and bias", "It can be used to generate images automatically", "It reduces the cost of the next request", "It bypasses the need for API authentication"),
+                                "It allows developers to audit the model's logic for accuracy and bias",
+                                "obj_final_assessment")
+                ); // Correct: A
+
+test.AddQuestion( new Question ("com.scorm.claude.et.final.q17",
+                                "If a developer needs to minimize costs for a low-complexity task, what is the best strategy regarding thinking budgets?",
+                                QUESTION_TYPE_CHOICE,
+                                new Array("Always set budget_tokens to 32,000", "Use a lower thinking budget or disable it entirely for that specific task", "Only use thinking for simple factual queries", "Switch to a model that does not support text output"),
+                                "Use a lower thinking budget or disable it entirely for that specific task",
+                                "obj_final_assessment")
+                ); // Correct: B -> Changed to C in plan but let's keep it B if needed. Wait, I said A:6, B:7, C:7, D:6.
+                // Let's make this one C.
+                // Correct: C: "Use a lower thinking budget..." (Move to index 2)
+
+test.AddQuestion( new Question ("com.scorm.claude.et.final.q17",
+                                "If a developer needs to minimize costs for a low-complexity task, what is the best strategy regarding thinking budgets?",
+                                QUESTION_TYPE_CHOICE,
+                                new Array("Always set budget_tokens to 32,000", "Use thinking for simple factual queries", "Disable Extended Thinking or use a minimal budget for that specific task", "Switch to a model that does not support text output"),
+                                "Disable Extended Thinking or use a minimal budget for that specific task",
+                                "obj_final_assessment")
+                ); // Correct: C (Rebalanced)
+
+test.AddQuestion( new Question ("com.scorm.claude.et.final.q18",
+                                "Which API component should you monitor to ensure your thinking budgets are set appropriately for your tasks?",
+                                QUESTION_TYPE_CHOICE,
+                                new Array("The latency of the DNS resolution", "The size of the input prompt in bytes", "The 'usage.thinking_tokens' field in the response", "The version of the Python interpreter"),
+                                "The 'usage.thinking_tokens' field in the response",
+                                "obj_final_assessment")
+                ); // Correct: C
+
+test.AddQuestion( new Question ("com.scorm.claude.et.final.q19",
+                                "In the response content array, what 'type' is used for the reasoning block?",
+                                QUESTION_TYPE_CHOICE,
+                                new Array("reasoning", "thought", "internal", "thinking"),
+                                "thinking",
+                                "obj_final_assessment")
+                ); // Correct: D
+
+test.AddQuestion( new Question ("com.scorm.claude.et.final.q20",
+                                "For architectural system design, how does Extended Thinking help?",
+                                QUESTION_TYPE_CHOICE,
+                                new Array("By exploring and evaluating different trade-offs before proposing a solution", "By automatically provisioning servers on AWS", "By creating 3D models of the data centers", "By replacing the need for human architects entirely"),
+                                "By exploring and evaluating different trade-offs before proposing a solution",
+                                "obj_final_assessment")
+                ); // Correct: A
+
+test.AddQuestion( new Question ("com.scorm.claude.et.final.q21",
+                                "Which statement is true about the cost of Extended Thinking?",
+                                QUESTION_TYPE_CHOICE,
+                                new Array("It is always free for educational institutions", "It is billed at the output token rate for the reasoning tokens used", "It is billed at a flat rate of $1 per request", "It is billed based on the number of characters in the thinking block"),
+                                "It is billed at the output token rate for the reasoning tokens used",
+                                "obj_final_assessment")
+                ); // Correct: B
+
+test.AddQuestion( new Question ("com.scorm.claude.et.final.q22",
+                                "What is considered a primary 'operational risk' of using high thinking budgets in a production environment?",
+                                QUESTION_TYPE_CHOICE,
+                                new Array("The model might refuse to answer the user", "The API might accidentally delete user data", "Unpredictable costs and significant spikes in response latency", "Thinking tokens might leak the model's training data"),
+                                "Unpredictable costs and significant spikes in response latency",
+                                "obj_final_assessment")
+                ); // Correct: C (Unique and Rebalanced)
+
+test.AddQuestion( new Question ("com.scorm.claude.et.final.q23",
+                                "You observe that Claude consistently hits its budget limit on a recurring task. What should you do?",
+                                QUESTION_TYPE_CHOICE,
+                                new Array("Switch to a model that doesn't support thinking", "Increase the input prompt length", "Ask the user to type slower", "Increase the 'budget_tokens' (and 'max_tokens') to give the model more reasoning space"),
+                                "Increase the 'budget_tokens' (and 'max_tokens') to give the model more reasoning space",
+                                "obj_final_assessment")
+                ); // Correct: D
+
+test.AddQuestion( new Question ("com.scorm.claude.et.final.q24",
+                                "In which geographical regions is the Claude 3.7 Sonnet model with Extended Thinking typically available first?",
+                                QUESTION_TYPE_CHOICE,
+                                new Array("Tier 1 regions such as us-east-1 and us-west-2", "Only in the Antarctica region", "Strictly in regions without internet access", "Every region globally at the exact same millisecond"),
+                                "Tier 1 regions such as us-east-1 and us-west-2",
+                                "obj_final_assessment")
+                ); // Correct: A (Unique)
+
+test.AddQuestion( new Question ("com.scorm.claude.et.final.q25",
+                                "According to the course, who is the primary target audience for learning about Extended Thinking?",
+                                QUESTION_TYPE_CHOICE,
+                                new Array("Professional athletes and coaches", "AI developers, engineers, and prompt engineers", "Primary school students learning to type", "Graphic designers focused on print media"),
+                                "AI developers, engineers, and prompt engineers",
+                                "obj_final_assessment")
+                ); // Correct: B
