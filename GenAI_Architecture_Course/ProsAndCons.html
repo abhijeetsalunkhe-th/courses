@@ -1,0 +1,79 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" dir="ltr" lang="en-US">
+<head>
+    <title>Architectural Pros and Cons</title>
+    <style type="text/css" media="screen">
+		@import url( ../shared/style.css );
+	</style>
+	<script src="../shared/scormfunctions.js" type="text/javascript"></script>
+	<script src="../shared/contentfunctions.js" type="text/javascript"></script>
+</head>
+<body>
+<h1>Architectural Pros and Cons</h1>
+
+<p>Every architectural decision in a GenAI system involves trade-offs. Understanding these pros and cons is essential for building sustainable AI applications.</p>
+
+<h2>Monolith Architecture</h2>
+<ul>
+    <li><strong>Pros:</strong> Simplest to build, deploy, and debug. Lowest latency for internal communication.</li>
+    <li><strong>Cons:</strong> Hard to scale resource-intensive AI components independently. Single point of failure.</li>
+</ul>
+
+<h2>Event-Driven Architecture</h2>
+<ul>
+    <li><strong>Pros:</strong> Excellent for long-running tasks. Highly scalable and resilient. Decouples expensive AI calls from the user-facing API.</li>
+    <li><strong>Cons:</strong> Increases system complexity. Requires managing message brokers and handling asynchronous state.</li>
+</ul>
+
+<h2>Serverless Architecture</h2>
+<ul>
+    <li><strong>Pros:</strong> Automatic scaling from zero. Zero infrastructure management. Pay only for exact execution time.</li>
+    <li><strong>Cons:</strong> Cold starts can increase latency. Limited execution time and memory for very large AI pipelines.</li>
+</ul>
+
+<h2>Comparison Matrix</h2>
+<table>
+    <tr>
+        <th>Factor</th>
+        <th>Monolith</th>
+        <th>Event-Driven</th>
+        <th>Serverless</th>
+    </tr>
+    <tr>
+        <td class="rowheader">Development Speed</td>
+        <td>Fastest</td>
+        <td>Moderate</td>
+        <td>Fast</td>
+    </tr>
+    <tr>
+        <td class="rowheader">Cost (Low Traffic)</td>
+        <td>Medium (Fixed)</td>
+        <td>High (Broker cost)</td>
+        <td>Low (Pay-per-use)</td>
+    </tr>
+    <tr>
+        <td class="rowheader">Complexity</td>
+        <td>Low</td>
+        <td>High</td>
+        <td>Low-Moderate</td>
+    </tr>
+</table>
+
+<h2>Key Trade-offs in GenAI</h2>
+<ol>
+    <li><strong>Latency vs. Cost:</strong> Premium models offer better results but at higher cost and latency. Caching reduces both but adds complexity.</li>
+    <li><strong>Complexity vs. Scalability:</strong> Event-driven systems scale better but are harder to maintain than monoliths.</li>
+    <li><strong>Privacy vs. Convenience:</strong> Self-hosting models (Local/VPC) offers maximum privacy but requires significant infrastructure effort compared to using cloud APIs.</li>
+</ol>
+
+<h2>Final Recommendations</h2>
+<ul>
+    <li><strong>Start with a Monolith</strong> for your MVP to validate the product-market fit quickly.</li>
+    <li><strong>Move to Event-Driven</strong> once you have long-running tasks or need to scale background processing.</li>
+    <li><strong>Implement Caching Early</strong> to save costs and improve user experience from day one.</li>
+</ul>
+
+<script type="text/javascript">
+</script>
+</body>
+</html>

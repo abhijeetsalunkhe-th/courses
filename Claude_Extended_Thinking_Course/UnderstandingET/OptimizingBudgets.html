@@ -11,43 +11,78 @@
 <body>
 <h1>Optimizing Thinking Budgets</h1>
 
+<p>The <code>budget_tokens</code> parameter is the primary lever for controlling Claude's reasoning depth. Setting an appropriate budget is a balance between <strong>accuracy, latency, and cost</strong>.</p>
 
-<h2>Budget Token Guidelines</h2>
+<h2>Budget Token Selection Guide</h2>
+<p>The following table provides general guidelines for setting budgets based on the nature of the task.</p>
+
+<table>
+    <tr>
+        <th>Task Complexity</th>
+        <th>Recommended Budget</th>
+        <th>Typical Use Cases</th>
+    </tr>
+    <tr>
+        <td class="rowheader">Moderate</td>
+        <td>1,000 - 4,000 tokens</td>
+        <td>Simple logic puzzles, unit test generation, short text analysis.</td>
+    </tr>
+    <tr>
+        <td class="rowheader">High</td>
+        <td>4,000 - 16,000 tokens</td>
+        <td>Complex debugging, architectural reviews, creative writing with strict constraints.</td>
+    </tr>
+    <tr>
+        <td class="rowheader">Extreme</td>
+        <td>16,000 - 64,000+ tokens</td>
+        <td>Deep mathematical research, large codebase refactoring, multi-document synthesis.</td>
+    </tr>
+</table>
+
+<h2>Cost and Performance Trade-offs</h2>
+<p>Understanding the impact of your thinking budget is crucial for production deployments.</p>
+
+<blockquote>
+<strong>Note:</strong> Thinking tokens are billed at the <strong>Output Token rate</strong>. If you set a budget of 10,000 tokens and Claude uses all of them, you will be billed for 10,000 output tokens in addition to the tokens in the final response.
+</blockquote>
+
 <ul>
-    <li><strong>2,000-5,000 tokens:</strong> Simple multi-step problems, basic analysis</li>
-    <li><strong>5,000-10,000 tokens:</strong> Complex reasoning, code debugging, architectural analysis</li>
-    <li><strong>10,000-50,000 tokens:</strong> Deep mathematical proofs, comprehensive security audits</li>
+    <li><strong>Latency:</strong> Each thinking token adds to the time-to-first-token (TTFT) and overall response time. Higher budgets generally mean longer wait times for the user.</li>
+    <li><strong>Token Consumption:</strong> Claude will not necessarily use the entire budget if it reaches a conclusion early. However, for very complex tasks, it may use the full budget.</li>
+    <li><strong>Max Tokens:</strong> Your <code>max_tokens</code> value must be <strong>greater than</strong> your <code>budget_tokens</code>. The difference represents the space left for the final response.</li>
 </ul>
 
-<h2>Cost Considerations</h2>
-<p>Thinking tokens are billed at the <strong>output token rate</strong>. A 10,000-token thinking budget adds significant cost per request. Use it selectively.</p>
+<h2>Budget Management Strategies</h2>
+<ol>
+    <li><strong>Start Conservative:</strong> Begin with a lower budget (e.g., 2,000 tokens) and monitor if the model's reasoning is being cut short (indicated by <code>stop_reason: "max_tokens"</code>).</li>
+    <li><strong>Task-Based Dynamic Budgeting:</strong> Implement logic in your application to assign higher budgets to known "hard" tasks and lower budgets to "easier" ones.</li>
+    <li><strong>Monitor and Iterate:</strong> Use API metadata to track how many thinking tokens are actually used (<code>usage.thinking_tokens</code>) and adjust your defaults accordingly.</li>
+</ol>
 
-<h2>Streaming with Thinking</h2>
+<h2>Budget Configuration Example</h2>
 <div class="code-block">
-<pre><code>with client.messages.stream(
-    model="claude-sonnet-4-20250514",
-    max_tokens=16000,
-    thinking={"type": "enabled", "budget_tokens": 5000},
-    messages=[{"role": "user", "content": "Debug this code..."}]
-) as stream:
-    for event in stream:
-        if event.type == "content_block_start":
-            if event.content_block.type == "thinking":
-                print("[Thinking...]")
-            elif event.content_block.type == "text":
-                print("[Response:]")
-        elif event.type == "content_block_delta":
-            print(event.delta.text or event.delta.thinking, end="")</code></pre>
+<pre><code># Scenario: High-complexity security audit
+response = client.messages.create(
+    model="claude-3-7-sonnet-20250219",
+    max_tokens=20000, # Total limit
+    thinking={
+        "type": "enabled",
+        "budget_tokens": 12000 # Reasoning limit
+    },
+    messages=[...]
+)
+
+# Check actual usage
+print(f"Thinking tokens used: {response.usage.thinking_tokens}")
+print(f"Output tokens used: {response.usage.output_tokens}")</code></pre>
 </div>
 
-<h2>Best Practices</h2>
+<h2>Best Practices for Budget Efficiency</h2>
 <ul>
-    <li><strong>Start small:</strong> Begin with a low budget and increase if quality is insufficient</li>
-    <li><strong>Task-specific budgets:</strong> Don't use one budget for all tasks</li>
-    <li><strong>Monitor usage:</strong> Track thinking token consumption in your analytics</li>
-    <li><strong>Combine with CoT prompting:</strong> Ask Claude to "reason carefully" even with thinking enabled</li>
+    <li><strong>Avoid Over-allocation:</strong> Don't use a 20k budget for tasks that typically only need 2k; it increases the risk of higher costs for outlier requests.</li>
+    <li><strong>Pair with Clear Instructions:</strong> Even with extended thinking, clear prompts help Claude focus its reasoning more effectively.</li>
+    <li><strong>Use Streaming for Better UX:</strong> When using high thinking budgets, stream the response so users can see the "Thinking..." state, reducing perceived latency.</li>
 </ul>
-
 
 <script type="text/javascript">
 </script>

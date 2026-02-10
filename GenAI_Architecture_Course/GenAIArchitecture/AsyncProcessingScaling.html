@@ -9,127 +9,74 @@
 	<script src="../shared/contentfunctions.js" type="text/javascript"></script>
 </head>
 <body>
-<h1>Async Processing and Scaling Strategies</h1>
+<h1>Async Processing and Scaling</h1>
 
+<p>LLM responses are slow. Designing for high-volume GenAI traffic requires strategies that manage latency and optimize resource consumption.</p>
 
-<h2>Async Processing for GenAI</h2>
-<p>LLM calls are inherently slow (1-30 seconds). Designing for asynchronous processing is critical for responsive user experiences and efficient resource utilization:</p>
+<h2>Asynchronous Processing Patterns</h2>
+<p>Since LLM calls can take 10-60 seconds, blocking an API request is rarely an option for a good user experience.</p>
 
-<h2>Async Patterns</h2>
 <table>
-    <tr><th>Pattern</th><th>How It Works</th><th>Use Case</th></tr>
-    <tr><td>Request-Reply</td><td>Submit request, poll for result</td><td>Long-running analysis, document processing</td></tr>
-    <tr><td>Streaming</td><td>Stream tokens as they are generated</td><td>Real-time chat, writing assistance</td></tr>
-    <tr><td>Webhook</td><td>Notify caller when result is ready</td><td>Background processing, CI/CD integration</td></tr>
-    <tr><td>Queue-based</td><td>Queue requests, process with workers</td><td>Batch processing, high-volume workloads</td></tr>
+    <tr><th>Pattern</th><th>Implementation</th><th>UX Impact</th></tr>
+    <tr><td><strong>Streaming</strong></td><td>Server-Sent Events (SSE) or WebSockets</td><td>Real-time feedback as tokens appear</td></tr>
+    <tr><td><strong>Polling</strong></td><td>Submit job -> Get JobID -> Poll status</td><td>Progress bar or "Processing" state</td></tr>
+    <tr><td><strong>Webhooks</strong></td><td>Push notification to a callback URL</td><td>Background processing (e.g., Email when done)</td></tr>
 </table>
 
-<h2>Streaming Implementation</h2>
-<div class="code-block">
-<pre><code>from fastapi import FastAPI
-from fastapi.responses import StreamingResponse
-from openai import OpenAI
+<h2>Scaling Strategies for GenAI</h2>
+<ol>
+    <li><strong>Horizontal API Scaling:</strong> Scaling the stateless API servers that handle request orchestration.</li>
+    <li><strong>Worker Pool Scaling (KEDA):</strong> Using Kubernetes Event-driven Autoscaling to scale AI workers based on the number of messages in the queue.</li>
+    <li><strong>Model Tiering:</strong> Routing simple requests to smaller, cheaper models (e.g., GPT-4o-mini) and complex ones to premium models (e.g., Claude 3.5 Sonnet).</li>
+</ol>
 
-app = FastAPI()
-client = OpenAI()
+<h2>The Power of Caching</h2>
+<p>Caching is the single most effective way to reduce both cost and latency in GenAI applications.</p>
 
-@app.post("/chat/stream")
-async def stream_chat(message: str):
-    async def generate():
-        stream = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[{"role": "user", "content": message}],
-            stream=True,
-        )
-        for chunk in stream:
-            if chunk.choices[0].delta.content:
-                yield f"data: {chunk.choices[0].delta.content}
-
-"
-        yield "data: [DONE]
-
-"
-
-    return StreamingResponse(
-        generate(),
-        media_type="text/event-stream",
-    )</code></pre>
-</div>
-
-<h2>Queue-Based Processing</h2>
-<div class="code-block">
-<pre><code>import celery
-from celery import Celery
-
-app = Celery("genai_tasks", broker="redis://localhost:6379/0")
-
-@app.task(bind=True, max_retries=3)
-def process_document(self, doc_id: str):
-    '''Background task for document processing with LLM.'''
-    try:
-        doc = fetch_document(doc_id)
-        chunks = chunk_document(doc)
-        embeddings = generate_embeddings(chunks)
-        store_in_vectordb(doc_id, chunks, embeddings)
-        summary = generate_summary(doc)
-        update_status(doc_id, "completed", summary=summary)
-    except Exception as exc:
-        update_status(doc_id, "failed", error=str(exc))
-        raise self.retry(exc=exc, countdown=60)
-
-# API endpoint
-@fastapi_app.post("/documents/{doc_id}/process")
-async def start_processing(doc_id: str):
-    task = process_document.delay(doc_id)
-    return {"task_id": task.id, "status": "processing"}</code></pre>
-</div>
-
-<h2>Scaling Strategies</h2>
-<table>
-    <tr><th>Strategy</th><th>Implementation</th><th>Best For</th></tr>
-    <tr><td>Horizontal API scaling</td><td>Multiple API server instances behind a load balancer</td><td>High concurrent request handling</td></tr>
-    <tr><td>Worker pool scaling</td><td>Auto-scale Celery/RQ workers based on queue depth</td><td>Batch and background processing</td></tr>
-    <tr><td>Model caching</td><td>Cache common responses with Redis/Memcached</td><td>Repeated queries, reducing API costs</td></tr>
-    <tr><td>Prompt caching</td><td>Use provider prompt caching (Anthropic, OpenAI)</td><td>Shared system prompts across requests</td></tr>
-    <tr><td>Request batching</td><td>Group multiple requests into a single API call</td><td>Embedding generation, classification</td></tr>
-</table>
-
-<h2>Caching Strategy</h2>
-<div class="code-block">
-<pre><code>import hashlib
-import redis
-import json
-
-cache = redis.Redis()
-
-def cached_llm_call(prompt: str, model: str, ttl: int = 3600) -&gt; str:
-    '''Cache LLM responses by prompt hash.'''
-    cache_key = f"llm:{model}:{hashlib.sha256(prompt.encode()).hexdigest()}"
-    cached = cache.get(cache_key)
-    if cached:
-        return json.loads(cached)
-
-    response = client.chat.completions.create(
-        model=model,
-        messages=[{"role": "user", "content": prompt}],
-    )
-    result = response.choices[0].message.content
-    cache.setex(cache_key, ttl, json.dumps(result))
-    return result
-
-# Cache hit rate tracking
-# In production, monitor hit rate and adjust TTL accordingly</code></pre>
-</div>
-
-<h2>Cost Optimization</h2>
 <ul>
-    <li><strong>Model tiering:</strong> Route simple queries to cheaper models (GPT-4o-mini, Haiku) and complex ones to premium models</li>
-    <li><strong>Response caching:</strong> Cache frequent queries - can reduce costs by 30-60%</li>
-    <li><strong>Prompt optimization:</strong> Shorter prompts cost less - remove unnecessary instructions</li>
-    <li><strong>Batching:</strong> Use batch APIs for non-real-time processing (often 50% cheaper)</li>
-    <li><strong>Self-hosted models:</strong> For high-volume workloads, self-hosting can be cheaper than API calls</li>
+    <li><strong>Semantic Caching:</strong> Using vector similarity to return a cached answer for a semantically similar question (even if wording differs).</li>
+    <li><strong>Prompt Caching:</strong> Leveraging provider-level caching (e.g., Anthropic Prompt Caching) for large system prompts or recurring context.</li>
+    <li><strong>Result Caching:</strong> Traditional Redis-based caching for identical input/output pairs.</li>
 </ul>
 
+<div class="code-block">
+<pre><code># Semantic Caching Workflow
+1. User asks: "How do I reset my password?"
+2. System calculates embedding of the question.
+3. System checks Vector DB for similar embeddings (similarity > 0.98).
+4. If found, return cached answer immediately (Latency < 50ms).
+5. If not found, call LLM and update cache.</code></pre>
+</div>
+
+<h2>Cost Optimization Framework</h2>
+<p>Managing the "AI Bill" is a critical architectural concern. Implement these strategies to keep costs under control:</p>
+<ul>
+    <li><strong>Token Budgeting:</strong> Set strict <code>max_tokens</code> limits per user or per request type.</li>
+    <li><strong>Batch Processing:</strong> Use Batch APIs for non-real-time tasks (often 50% cheaper).</li>
+    <li><strong>Prompt Pruning:</strong> Dynamically remove unnecessary context or instructions to minimize input tokens.</li>
+</ul>
+
+<div class="workflow-diagram">
+    <div class="workflow-step">
+        <strong>Request</strong>
+        User Query
+    </div>
+    <div class="workflow-arrow">➜</div>
+    <div class="workflow-step">
+        <strong>Cache Layer</strong>
+        Check Semantic/Redis Cache
+    </div>
+    <div class="workflow-arrow">➜</div>
+    <div class="workflow-step">
+        <strong>Router</strong>
+        Select Model (Cheap vs Premium)
+    </div>
+    <div class="workflow-arrow">➜</div>
+    <div class="workflow-step">
+        <strong>LLM Call</strong>
+        Generate & Update Cache
+    </div>
+</div>
 
 <script type="text/javascript">
 </script>
