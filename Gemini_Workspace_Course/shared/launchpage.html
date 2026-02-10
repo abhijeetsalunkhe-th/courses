@@ -1,0 +1,476 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Gemini for Google Workspace - Docs, Sheets, and Gmail</title>
+    <script src="shared/scormfunctions.js" type="text/javascript"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        html, body {
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            color: #1e293b;
+        }
+        
+        #contentFrame {
+            border: none;
+            background: transparent;
+            height: 100vh;
+            width: 100vw;
+            position: fixed;
+            top: 0;
+            left: 0;
+            display: block;
+        }
+        
+        #navDiv {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            display: flex;
+            gap: 0.75rem;
+            z-index: 1000;
+        }
+        
+        #navDiv input[type="button"] {
+            background: linear-gradient(135deg, #F16F00 0%, #e91e63 50%, #9c27b0 100%);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 0.875rem 1.5rem;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            min-width: 100px;
+            letter-spacing: 0.025em;
+        }
+        
+        #navDiv input[type="button"]:hover:not(:disabled) {
+            background: linear-gradient(135deg, #e55a00 0%, #d81b60 50%, #7b1fa2 100%);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        
+        #navDiv input[type="button"]:disabled {
+            background: rgba(148, 163, 184, 0.5);
+            color: #64748b;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+        
+        #navDiv input[type="button"]:active:not(:disabled) {
+            transform: translateY(0);
+        }
+        
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+            border: 2px solid #F16F00;
+        }
+        
+        .modal h3 {
+            color: #F16F00;
+            margin-bottom: 1rem;
+            font-size: 1.25rem;
+        }
+        
+        .modal p {
+            color: #4a5568;
+            margin-bottom: 1.5rem;
+            line-height: 1.5;
+        }
+        
+        .modal-buttons {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: flex-end;
+        }
+        
+        .modal-btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .modal-btn-primary {
+            background: linear-gradient(135deg, #F16F00 0%, #e91e63 100%);
+            color: white;
+        }
+        
+        .modal-btn-secondary {
+            background: #e2e8f0;
+            color: #4a5568;
+        }
+        
+        .modal-btn:hover {
+            transform: translateY(-1px);
+        }
+    </style>
+    <script type="text/javascript">
+
+    function showModal(title, message, showCancel = false) {
+        return new Promise((resolve) => {
+            const overlay = document.createElement('div');
+            overlay.className = 'modal-overlay';
+            
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            
+            modal.innerHTML = `
+                <h3>${title}</h3>
+                <p>${message}</p>
+                <div class="modal-buttons">
+                    ${showCancel ? '<button class="modal-btn modal-btn-secondary" onclick="closeModal(false)">Cancel</button>' : ''}
+                    <button class="modal-btn modal-btn-primary" onclick="closeModal(true)">OK</button>
+                </div>
+            `;
+            
+            overlay.appendChild(modal);
+            document.body.appendChild(overlay);
+            
+            window.closeModal = function(result) {
+                document.body.removeChild(overlay);
+                resolve(result);
+            };
+        });
+    }
+
+    function normalizeScormValue(val) {
+        if (val == null) return "";
+        
+        if (typeof val === "object") {
+            if (val.hasOwnProperty("o")) {
+                return String(val.o);
+            }
+            try {
+                return JSON.stringify(val);
+            } catch {
+                return "";
+            }
+        }
+        
+        return String(val);
+    }
+
+        var pageArray = new Array(4);
+
+    // Course Introduction
+    pageArray[0] = "Introduction/Introduction.html";
+
+    // AI-Powered Productivity
+    pageArray[1] = "AIProductivity/DocsSlidesMail.html";
+    pageArray[2] = "AIProductivity/SheetsAutomation.html";
+
+    // Final Comprehensive Assessment
+    pageArray[3] = "FinalAssessment/assessment.html"; // 25 unique questions
+
+    var currentPage = null;
+    var startTimeStamp = null;
+    var processedUnload = false;
+    var reachedEnd = false;
+    var isInitializing = true;
+
+    function doStart(){
+        startTimeStamp = new Date();
+        ScormProcessInitialize();
+
+        var completionStatus = ScormProcessGetValue("cmi.core.lesson_status");
+        if (completionStatus == "not attempted"){
+            ScormProcessSetValue("cmi.core.lesson_status", "incomplete");
+        }
+
+        setTimeout(function() {
+            resolveBookmarkAndNavigate();
+        }, 100);
+    }
+    
+    function resolveBookmarkAndNavigate() {
+        var raw = ScormProcessGetValue("cmi.core.lesson_location");
+        var bookmark = normalizeScormValue(raw);
+        
+        var parsedBookmark = parseInt(bookmark, 10);
+        
+        if (
+            bookmark !== "" &&
+            !isNaN(parsedBookmark) &&
+            parsedBookmark >= 0 &&
+            parsedBookmark < pageArray.length
+        ) {
+            showModal('Resume Course', 'Would you like to resume from where you previously left off?', true).then((result) => {
+                if (result) {
+                    currentPage = parsedBookmark;
+                } else {
+                    currentPage = 0;
+                }
+                goToPage();
+                isInitializing = false;
+            });
+        }
+        else{
+            currentPage = 0;
+            goToPage();
+            isInitializing = false;
+        }
+    }
+
+    function goToPage(){
+        var theIframe = document.getElementById("contentFrame");
+        var prevButton = document.getElementById("butPrevious");
+        var nextButton = document.getElementById("butNext");
+
+        theIframe.src = pageArray[currentPage];
+
+        // Reset button states and styling
+        prevButton.disabled = false;
+        nextButton.disabled = false;
+        prevButton.style.opacity = "1";
+        nextButton.style.opacity = "1";
+        prevButton.style.cursor = "pointer";
+        nextButton.style.cursor = "pointer";
+
+        if (currentPage == 0){
+            prevButton.disabled = true;
+            prevButton.style.opacity = "0.5";
+            prevButton.style.cursor = "not-allowed";
+        }
+        else if (currentPage == (pageArray.length - 1)){
+            nextButton.disabled = true;
+            nextButton.style.opacity = "0.5";
+            nextButton.style.cursor = "not-allowed";
+            reachedEnd = true;
+        }
+    }
+    
+    function saveBookmark() {
+        if (isInitializing) {
+            return;
+        }
+        ScormProcessSetValue("cmi.core.lesson_location", currentPage);
+    }
+
+    function doUnload(pressedExit){
+        if (processedUnload == true){return;}
+        processedUnload = true;
+
+        var endTimeStamp = new Date();
+        var totalMilliseconds = (endTimeStamp.getTime() - startTimeStamp.getTime());
+        var scormTime = ConvertMilliSecondsToSCORMTime(totalMilliseconds, false);
+
+        ScormProcessSetValue("cmi.core.session_time", scormTime);
+
+        if (pressedExit == false && reachedEnd == false){
+            ScormProcessSetValue("cmi.core.exit", "suspend");
+        }
+
+        ScormProcessFinish();
+    }
+
+    function doPrevious(){
+        if (currentPage > 0){
+            currentPage--;
+        }
+        goToPage();
+        saveBookmark();
+    }
+
+    function doNext(){
+        // Prevent navigation if already on the last page
+        if (currentPage >= (pageArray.length - 1)) {
+            return;
+        }
+        
+        var currentPageUrl = pageArray[currentPage];
+        if (currentPageUrl && currentPageUrl.indexOf('assessment.html') !== -1) {
+            var iframe = document.getElementById('contentFrame');
+            if (iframe && iframe.contentWindow) {
+                try {
+                    // Wait for iframe to load if not ready
+                    if (!iframe.contentWindow.document || iframe.contentWindow.document.readyState !== 'complete') {
+                        setTimeout(doNext, 100);
+                        return;
+                    }
+                    
+                    // Check the nested iframe (assessmenttemplate.html) for assessmentPassed
+                    var assessmentIframe = iframe.contentWindow.document.querySelector('iframe');
+                    if (assessmentIframe && assessmentIframe.contentWindow) {
+                        var assessmentPassed = assessmentIframe.contentWindow.assessmentPassed;
+                        if (assessmentPassed !== true) {
+                            showModal('Assessment Required', 'You must pass the assessment with 70% or higher to continue.');
+                            return;
+                        }
+                    } else {
+                        showModal('Assessment Required', 'You must pass the assessment with 70% or higher to continue.');
+                        return;
+                    }
+                } catch(e) {
+                    // If we can't access iframe content, assume assessment not completed
+                    showModal('Assessment Required', 'You must pass the assessment with 70% or higher to continue.');
+                    return;
+                }
+            } else {
+                showModal('Assessment Required', 'You must pass the assessment with 70% or higher to continue.');
+                return;
+            }
+        }
+        
+        currentPage++;
+        goToPage();
+        saveBookmark();
+    }
+
+    function doExit(){
+        if (reachedEnd == false) {
+            showModal('Save Progress', 'Would you like to save your progress to resume later?', true).then((result) => {
+                if (result) {
+                    ScormProcessSetValue("cmi.core.exit", "suspend");
+                } else {
+                    ScormProcessSetValue("cmi.core.exit", "");
+                }
+                doUnload(true);
+            });
+        } else {
+            ScormProcessSetValue("cmi.core.exit", "");
+            doUnload(true);
+        }
+    }
+
+    function RecordTest(score){
+        ScormProcessSetValue("cmi.core.score.raw", score);
+        ScormProcessSetValue("cmi.core.score.min", "0");
+        ScormProcessSetValue("cmi.core.score.max", "100");
+
+        if (score >= 70){
+            // If we're on the final assessment and user passed, mark as completed
+            if (currentPage == (pageArray.length - 1)) {
+                ScormProcessSetValue("cmi.core.lesson_status", "completed");
+            } else {
+                ScormProcessSetValue("cmi.core.lesson_status", "passed");
+            }
+        }
+        else{
+            ScormProcessSetValue("cmi.core.lesson_status", "failed");
+        }
+    }
+
+    function ConvertMilliSecondsToSCORMTime(intTotalMilliseconds, blnIncludeFraction){
+	    var intHours;
+	    var intintMinutes;
+	    var intSeconds;
+	    var intMilliseconds;
+	    var intHundredths;
+	    var strCMITimeSpan;
+
+	    if (blnIncludeFraction == null || blnIncludeFraction == undefined){
+		    blnIncludeFraction = true;
+	    }
+
+	    intMilliseconds = intTotalMilliseconds % 1000;
+	    intSeconds = ((intTotalMilliseconds - intMilliseconds) / 1000) % 60;
+	    intMinutes = ((intTotalMilliseconds - intMilliseconds - (intSeconds * 1000)) / 60000) % 60;
+	    intHours = (intTotalMilliseconds - intMilliseconds - (intSeconds * 1000) - (intMinutes * 60000)) / 3600000;
+
+	    if (intHours == 10000) {
+		    intHours = 9999;
+		    intMinutes = (intTotalMilliseconds - (intHours * 3600000)) / 60000;
+		    if (intMinutes == 100) {
+			    intMinutes = 99;
+		    }
+		    intMinutes = Math.floor(intMinutes);
+
+		    intSeconds = (intTotalMilliseconds - (intHours * 3600000) - (intMinutes * 60000)) / 1000;
+		    if (intSeconds == 100) {
+			    intSeconds = 99;
+		    }
+		    intSeconds = Math.floor(intSeconds);
+
+		    intMilliseconds = (intTotalMilliseconds - (intHours * 3600000) - (intMinutes * 60000) - (intSeconds * 1000));
+	    }
+
+	    intHundredths = Math.floor(intMilliseconds / 10);
+	    strCMITimeSpan = ZeroPad(intHours, 4) + ":" + ZeroPad(intMinutes, 2) + ":" + ZeroPad(intSeconds, 2);
+
+	    if (blnIncludeFraction){
+		    strCMITimeSpan += "." + intHundredths;
+	    }
+
+	    if (intHours > 9999) {
+		    strCMITimeSpan = "9999:99:99";
+		    if (blnIncludeFraction){
+			    strCMITimeSpan += ".99";
+		    }
+	    }
+
+	    return strCMITimeSpan;
+    }
+
+    function ZeroPad(intNum, intNumDigits){
+	    var strTemp;
+	    var intLen;
+	    var i;
+
+	    strTemp = new String(intNum);
+	    intLen = strTemp.length;
+
+	    if (intLen > intNumDigits){
+		    strTemp = strTemp.substr(0,intNumDigits);
+	    }
+	    else{
+		    for (i=intLen; i<intNumDigits; i++){
+			    strTemp = "0" + strTemp;
+		    }
+	    }
+
+	    return strTemp;
+    }
+    </script>
+
+</head>
+<body onload="doStart(false);" onbeforeunload="doUnload(false);" onunload="doUnload();">
+
+    <iframe width="100%" id="contentFrame" src="about:blank"></iframe>
+
+    <div id="navDiv">
+        <input type="button" value="< Previous" id="butPrevious" onclick="doPrevious();"/>
+        <input type="button" value="Next >" id="butNext" onclick="doNext();"/>
+        <input type="button" value="Exit" id="butExit" onclick="doExit();"/>
+    </div>
+
+</body>
+</html>

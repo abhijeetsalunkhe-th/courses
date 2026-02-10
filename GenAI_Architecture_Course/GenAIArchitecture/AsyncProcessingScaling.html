@@ -1,0 +1,137 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" dir="ltr" lang="en-US">
+<head>
+    <title>Async Processing and Scaling Strategies</title>
+    <style type="text/css" media="screen">
+		@import url( ../shared/style.css );
+	</style>
+	<script src="../shared/scormfunctions.js" type="text/javascript"></script>
+	<script src="../shared/contentfunctions.js" type="text/javascript"></script>
+</head>
+<body>
+<h1>Async Processing and Scaling Strategies</h1>
+
+
+<h2>Async Processing for GenAI</h2>
+<p>LLM calls are inherently slow (1-30 seconds). Designing for asynchronous processing is critical for responsive user experiences and efficient resource utilization:</p>
+
+<h2>Async Patterns</h2>
+<table>
+    <tr><th>Pattern</th><th>How It Works</th><th>Use Case</th></tr>
+    <tr><td>Request-Reply</td><td>Submit request, poll for result</td><td>Long-running analysis, document processing</td></tr>
+    <tr><td>Streaming</td><td>Stream tokens as they are generated</td><td>Real-time chat, writing assistance</td></tr>
+    <tr><td>Webhook</td><td>Notify caller when result is ready</td><td>Background processing, CI/CD integration</td></tr>
+    <tr><td>Queue-based</td><td>Queue requests, process with workers</td><td>Batch processing, high-volume workloads</td></tr>
+</table>
+
+<h2>Streaming Implementation</h2>
+<div class="code-block">
+<pre><code>from fastapi import FastAPI
+from fastapi.responses import StreamingResponse
+from openai import OpenAI
+
+app = FastAPI()
+client = OpenAI()
+
+@app.post("/chat/stream")
+async def stream_chat(message: str):
+    async def generate():
+        stream = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": message}],
+            stream=True,
+        )
+        for chunk in stream:
+            if chunk.choices[0].delta.content:
+                yield f"data: {chunk.choices[0].delta.content}
+
+"
+        yield "data: [DONE]
+
+"
+
+    return StreamingResponse(
+        generate(),
+        media_type="text/event-stream",
+    )</code></pre>
+</div>
+
+<h2>Queue-Based Processing</h2>
+<div class="code-block">
+<pre><code>import celery
+from celery import Celery
+
+app = Celery("genai_tasks", broker="redis://localhost:6379/0")
+
+@app.task(bind=True, max_retries=3)
+def process_document(self, doc_id: str):
+    '''Background task for document processing with LLM.'''
+    try:
+        doc = fetch_document(doc_id)
+        chunks = chunk_document(doc)
+        embeddings = generate_embeddings(chunks)
+        store_in_vectordb(doc_id, chunks, embeddings)
+        summary = generate_summary(doc)
+        update_status(doc_id, "completed", summary=summary)
+    except Exception as exc:
+        update_status(doc_id, "failed", error=str(exc))
+        raise self.retry(exc=exc, countdown=60)
+
+# API endpoint
+@fastapi_app.post("/documents/{doc_id}/process")
+async def start_processing(doc_id: str):
+    task = process_document.delay(doc_id)
+    return {"task_id": task.id, "status": "processing"}</code></pre>
+</div>
+
+<h2>Scaling Strategies</h2>
+<table>
+    <tr><th>Strategy</th><th>Implementation</th><th>Best For</th></tr>
+    <tr><td>Horizontal API scaling</td><td>Multiple API server instances behind a load balancer</td><td>High concurrent request handling</td></tr>
+    <tr><td>Worker pool scaling</td><td>Auto-scale Celery/RQ workers based on queue depth</td><td>Batch and background processing</td></tr>
+    <tr><td>Model caching</td><td>Cache common responses with Redis/Memcached</td><td>Repeated queries, reducing API costs</td></tr>
+    <tr><td>Prompt caching</td><td>Use provider prompt caching (Anthropic, OpenAI)</td><td>Shared system prompts across requests</td></tr>
+    <tr><td>Request batching</td><td>Group multiple requests into a single API call</td><td>Embedding generation, classification</td></tr>
+</table>
+
+<h2>Caching Strategy</h2>
+<div class="code-block">
+<pre><code>import hashlib
+import redis
+import json
+
+cache = redis.Redis()
+
+def cached_llm_call(prompt: str, model: str, ttl: int = 3600) -&gt; str:
+    '''Cache LLM responses by prompt hash.'''
+    cache_key = f"llm:{model}:{hashlib.sha256(prompt.encode()).hexdigest()}"
+    cached = cache.get(cache_key)
+    if cached:
+        return json.loads(cached)
+
+    response = client.chat.completions.create(
+        model=model,
+        messages=[{"role": "user", "content": prompt}],
+    )
+    result = response.choices[0].message.content
+    cache.setex(cache_key, ttl, json.dumps(result))
+    return result
+
+# Cache hit rate tracking
+# In production, monitor hit rate and adjust TTL accordingly</code></pre>
+</div>
+
+<h2>Cost Optimization</h2>
+<ul>
+    <li><strong>Model tiering:</strong> Route simple queries to cheaper models (GPT-4o-mini, Haiku) and complex ones to premium models</li>
+    <li><strong>Response caching:</strong> Cache frequent queries - can reduce costs by 30-60%</li>
+    <li><strong>Prompt optimization:</strong> Shorter prompts cost less - remove unnecessary instructions</li>
+    <li><strong>Batching:</strong> Use batch APIs for non-real-time processing (often 50% cheaper)</li>
+    <li><strong>Self-hosted models:</strong> For high-volume workloads, self-hosting can be cheaper than API calls</li>
+</ul>
+
+
+<script type="text/javascript">
+</script>
+</body>
+</html>

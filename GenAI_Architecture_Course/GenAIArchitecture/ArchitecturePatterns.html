@@ -1,0 +1,138 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" dir="ltr" lang="en-US">
+<head>
+    <title>Architecture Selection and Patterns</title>
+    <style type="text/css" media="screen">
+		@import url( ../shared/style.css );
+	</style>
+	<script src="../shared/scormfunctions.js" type="text/javascript"></script>
+	<script src="../shared/contentfunctions.js" type="text/javascript"></script>
+</head>
+<body>
+<h1>Architecture Selection and Patterns</h1>
+
+
+<h2>GenAI Architecture Patterns</h2>
+<p>Choosing the right architecture for GenAI applications depends on latency requirements, scale, cost, and complexity. Each pattern has trade-offs that affect how you build, deploy, and maintain your AI-powered systems.</p>
+
+<h2>Architecture Patterns Comparison</h2>
+<table>
+    <tr><th>Pattern</th><th>Latency</th><th>Scale</th><th>Complexity</th><th>Cost</th></tr>
+    <tr><td>Monolith</td><td>Low (co-located)</td><td>Vertical</td><td>Low</td><td>Low (start)</td></tr>
+    <tr><td>Microservices</td><td>Medium (network hops)</td><td>Horizontal per service</td><td>High</td><td>Medium</td></tr>
+    <tr><td>Event-Driven</td><td>Async (variable)</td><td>Horizontal</td><td>Medium-High</td><td>Medium</td></tr>
+    <tr><td>Serverless</td><td>Variable (cold starts)</td><td>Automatic</td><td>Low-Medium</td><td>Pay-per-use</td></tr>
+    <tr><td>Hybrid</td><td>Optimized per component</td><td>Mixed</td><td>Highest</td><td>Optimized</td></tr>
+</table>
+
+<h2>Monolith Pattern</h2>
+<div class="code-block">
+<pre><code># Simple monolith: FastAPI app with LLM integration
+from fastapi import FastAPI
+from openai import OpenAI
+
+app = FastAPI()
+client = OpenAI()
+
+@app.post("/chat")
+async def chat(message: str):
+    # Everything in one process: auth, RAG, LLM call, logging
+    context = retrieve_context(message)
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {"role": "system", "content": f"Context: {context}"},
+            {"role": "user", "content": message},
+        ],
+    )
+    log_interaction(message, response)
+    return {"response": response.choices[0].message.content}
+
+# Pros: Simple, fast to build, easy to debug
+# Cons: Hard to scale components independently, single point of failure</code></pre>
+</div>
+
+<h2>Event-Driven Pattern</h2>
+<div class="code-block">
+<pre><code># Event-driven: decouple components with a message queue
+# Producer: API receives request and publishes event
+import json
+from kafka import KafkaProducer
+
+producer = KafkaProducer(
+    bootstrap_servers="kafka:9092",
+    value_serializer=lambda v: json.dumps(v).encode(),
+)
+
+@app.post("/process")
+async def process_document(doc_id: str):
+    producer.send("document-processing", {
+        "doc_id": doc_id,
+        "stage": "embedding",
+    })
+    return {"status": "processing", "doc_id": doc_id}
+
+# Consumer: processes events asynchronously
+from kafka import KafkaConsumer
+
+consumer = KafkaConsumer("document-processing")
+for message in consumer:
+    event = json.loads(message.value)
+    if event["stage"] == "embedding":
+        embeddings = generate_embeddings(event["doc_id"])
+        store_embeddings(event["doc_id"], embeddings)
+        producer.send("document-processing", {
+            "doc_id": event["doc_id"],
+            "stage": "indexing",
+        })</code></pre>
+</div>
+
+<h2>Serverless Pattern</h2>
+<div class="code-block">
+<pre><code># AWS Lambda with LLM call
+# serverless.yml
+# functions:
+#   chat:
+#     handler: handler.chat
+#     timeout: 60
+#     memorySize: 512
+#     events:
+#       - httpApi:
+#           path: /chat
+#           method: post
+
+# handler.py
+import json
+from openai import OpenAI
+
+client = OpenAI()
+
+def chat(event, context):
+    body = json.loads(event["body"])
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=body["messages"],
+    )
+    return {
+        "statusCode": 200,
+        "body": json.dumps({
+            "response": response.choices[0].message.content,
+        }),
+    }
+# Pros: Auto-scaling, pay-per-use, zero infrastructure
+# Cons: Cold starts (1-3s), 15 min timeout limit, no GPU</code></pre>
+</div>
+
+<h2>Pattern Selection Guide</h2>
+<ul>
+    <li><strong>Monolith:</strong> Best for MVPs, small teams, simple chatbots, prototypes</li>
+    <li><strong>Event-driven:</strong> Best for document processing pipelines, async RAG indexing, multi-step workflows</li>
+    <li><strong>Serverless:</strong> Best for variable traffic, webhook handlers, scheduled tasks, cost-sensitive projects</li>
+    <li><strong>Microservices:</strong> Best for large teams, different scaling needs per component, polyglot environments</li>
+</ul>
+
+
+<script type="text/javascript">
+</script>
+</body>
+</html>
