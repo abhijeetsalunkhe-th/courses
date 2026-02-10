@@ -1,0 +1,62 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" dir="ltr" lang="en-US">
+<head>
+    <title>What Is Extended Thinking?</title>
+    <style type="text/css" media="screen">
+		@import url( ../shared/style.css );
+	</style>
+	<script src="../shared/scormfunctions.js" type="text/javascript"></script>
+	<script src="../shared/contentfunctions.js" type="text/javascript"></script>
+</head>
+<body>
+<h1>What Is Extended Thinking?</h1>
+
+
+<h2>Overview</h2>
+<p>Extended thinking gives Claude a dedicated <strong>"thinking" phase</strong> before generating its response. During this phase, Claude can reason through complex problems, explore multiple approaches, and arrive at more accurate answers.</p>
+
+<h2>How It Works</h2>
+<ul>
+    <li><strong>Thinking tokens:</strong> Claude uses internal reasoning tokens (visible to you) before the final response</li>
+    <li><strong>Budget control:</strong> You set a <code>max_tokens</code> budget for thinking</li>
+    <li><strong>Transparent reasoning:</strong> You can see Claude's thought process in <code>thinking</code> content blocks</li>
+</ul>
+
+<h2>API Usage</h2>
+<div class="code-block">
+<pre><code>response = client.messages.create(
+    model="claude-sonnet-4-20250514",
+    max_tokens=16000,
+    thinking={
+        "type": "enabled",
+        "budget_tokens": 10000  # Up to 10K tokens for thinking
+    },
+    messages=[{
+        "role": "user",
+        "content": "Analyze the time complexity of this recursive algorithm..."
+    }]
+)
+
+# Access thinking and response separately
+for block in response.content:
+    if block.type == "thinking":
+        print("THINKING:", block.thinking)
+    elif block.type == "text":
+        print("RESPONSE:", block.text)</code></pre>
+</div>
+
+<h2>When to Use Extended Thinking</h2>
+<table>
+    <tr><th>Good Candidates</th><th>Not Necessary</th></tr>
+    <tr><td>Complex math/logic problems</td><td>Simple factual questions</td></tr>
+    <tr><td>Multi-step debugging</td><td>Text formatting/editing</td></tr>
+    <tr><td>Architecture design decisions</td><td>Translations</td></tr>
+    <tr><td>Code review with deep analysis</td><td>Summarization of short texts</td></tr>
+    <tr><td>Security vulnerability analysis</td><td>List generation</td></tr>
+</table>
+
+
+<script type="text/javascript">
+</script>
+</body>
+</html>

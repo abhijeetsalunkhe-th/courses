@@ -1,0 +1,55 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" dir="ltr" lang="en-US">
+<head>
+    <title>Optimizing Thinking Budgets</title>
+    <style type="text/css" media="screen">
+		@import url( ../shared/style.css );
+	</style>
+	<script src="../shared/scormfunctions.js" type="text/javascript"></script>
+	<script src="../shared/contentfunctions.js" type="text/javascript"></script>
+</head>
+<body>
+<h1>Optimizing Thinking Budgets</h1>
+
+
+<h2>Budget Token Guidelines</h2>
+<ul>
+    <li><strong>2,000-5,000 tokens:</strong> Simple multi-step problems, basic analysis</li>
+    <li><strong>5,000-10,000 tokens:</strong> Complex reasoning, code debugging, architectural analysis</li>
+    <li><strong>10,000-50,000 tokens:</strong> Deep mathematical proofs, comprehensive security audits</li>
+</ul>
+
+<h2>Cost Considerations</h2>
+<p>Thinking tokens are billed at the <strong>output token rate</strong>. A 10,000-token thinking budget adds significant cost per request. Use it selectively.</p>
+
+<h2>Streaming with Thinking</h2>
+<div class="code-block">
+<pre><code>with client.messages.stream(
+    model="claude-sonnet-4-20250514",
+    max_tokens=16000,
+    thinking={"type": "enabled", "budget_tokens": 5000},
+    messages=[{"role": "user", "content": "Debug this code..."}]
+) as stream:
+    for event in stream:
+        if event.type == "content_block_start":
+            if event.content_block.type == "thinking":
+                print("[Thinking...]")
+            elif event.content_block.type == "text":
+                print("[Response:]")
+        elif event.type == "content_block_delta":
+            print(event.delta.text or event.delta.thinking, end="")</code></pre>
+</div>
+
+<h2>Best Practices</h2>
+<ul>
+    <li><strong>Start small:</strong> Begin with a low budget and increase if quality is insufficient</li>
+    <li><strong>Task-specific budgets:</strong> Don't use one budget for all tasks</li>
+    <li><strong>Monitor usage:</strong> Track thinking token consumption in your analytics</li>
+    <li><strong>Combine with CoT prompting:</strong> Ask Claude to "reason carefully" even with thinking enabled</li>
+</ul>
+
+
+<script type="text/javascript">
+</script>
+</body>
+</html>
