@@ -346,3 +346,56 @@ input[type="button"]:active, input[type="submit"]:active {
 		margin: 0.5rem 0;
 	}
 }
+.workflow-diagram {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    margin: 2rem 0;
+    padding: 2rem;
+    background: #f8fafc;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+}
+
+.workflow-step {
+    background: white;
+    padding: 1rem;
+    border: 2px solid #F16F00;
+    border-radius: 8px;
+    text-align: center;
+    font-weight: 600;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    position: relative;
+    z-index: 1;
+}
+
+.workflow-arrow {
+    flex-grow: 1;
+    height: 2px;
+    background: #F16F00;
+    margin: 0 1rem;
+    position: relative;
+}
+
+.workflow-arrow::after {
+    content: '';
+    position: absolute;
+    right: -2px;
+    top: -4px;
+    width: 0;
+    height: 0;
+    border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent;
+    border-left: 10px solid #F16F00;
+}
+
+.code-block {
+    background: #1a202c;
+    color: #e2e8f0;
+    padding: 1.5rem;
+    border-radius: 8px;
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+    font-size: 0.9rem;
+    margin: 1.5rem 0;
+    overflow-x: auto;
+}

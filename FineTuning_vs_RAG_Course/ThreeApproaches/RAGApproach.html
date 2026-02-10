@@ -9,37 +9,60 @@
 	<script src="../shared/contentfunctions.js" type="text/javascript"></script>
 </head>
 <body>
-<h1>RAG - Adding External Knowledge</h1>
+<h1>RAG: Adding External Knowledge</h1>
 
+<h2>What is Retrieval-Augmented Generation?</h2>
+<p>RAG is a technique that gives an LLM access to external, real-time data without modifying the model's weights. It works by "retrieving" relevant document snippets and "augmenting" the user's prompt with this information before "generating" the final answer.</p>
 
-<h2>What It Is</h2>
-<p>RAG augments an LLM by <strong>retrieving relevant documents</strong> at query time and including them in the prompt. The model's weights remain unchanged, but it has access to external knowledge.</p>
+<div class="workflow-diagram">
+    <div class="workflow-step">User Query</div>
+    <div class="workflow-arrow"></div>
+    <div class="workflow-step">Search Vector DB</div>
+    <div class="workflow-arrow"></div>
+    <div class="workflow-step">Relevant Context</div>
+    <div class="workflow-arrow"></div>
+    <div class="workflow-step">LLM Answer</div>
+</div>
 
-<h2>Typical RAG Stack</h2>
+<h2>The RAG Technical Stack</h2>
+<ul>
+    <li><strong>Document Ingestion:</strong> Parsing PDFs, HTML, or databases into text.</li>
+    <li><strong>Chunking:</strong> Breaking documents into smaller, manageable pieces (e.g., 500-word snippets).</li>
+    <li><strong>Embeddings:</strong> Converting text chunks into numerical vectors.</li>
+    <li><strong>Vector Database:</strong> Storing vectors for fast similarity searching (e.g., Pinecone, Weaviate, Milvus).</li>
+</ul>
+
+<h2>Core Advantages of RAG</h2>
 <table>
-    <tr><th>Component</th><th>Purpose</th><th>Examples</th></tr>
-    <tr><td>Document Store</td><td>Hold source documents</td><td>S3, GCS, database</td></tr>
-    <tr><td>Embedding Model</td><td>Convert text to vectors</td><td>OpenAI Ada, Cohere, BGE</td></tr>
-    <tr><td>Vector Database</td><td>Similarity search</td><td>Pinecone, Weaviate, pgvector</td></tr>
-    <tr><td>LLM</td><td>Generate answers from context</td><td>Claude, GPT-4, Gemini</td></tr>
+    <tr><th>Advantage</th><th>Description</th></tr>
+    <tr><td class="rowheader">Up-to-Date Information</td><td>Knowledge can be updated in real-time by adding or removing documents from the database.</td></tr>
+    <tr><td class="rowheader">Citations & Transparency</td><td>The model can cite the specific document or page where it found the information.</td></tr>
+    <tr><td class="rowheader">Reduced Hallucination</td><td>Grounds the response in retrieved facts rather than relying solely on the model's internal memory.</td></tr>
+    <tr><td class="rowheader">Domain Knowledge</td><td>Works exceptionally well with proprietary or private data that the model was never trained on.</td></tr>
 </table>
 
-<h2>Strengths</h2>
-<ul>
-    <li><strong>Current information:</strong> Add or update documents without retraining</li>
-    <li><strong>Source attribution:</strong> Can cite specific documents and passages</li>
-    <li><strong>Domain knowledge:</strong> Works with proprietary/internal data</li>
-    <li><strong>Reduced hallucination:</strong> Grounds responses in retrieved facts</li>
-</ul>
+<h2>Typical RAG Prompt Structure</h2>
+<div class="code-block">
+<pre><code># Behind the Scenes: The Augmented Prompt
+"You are a helpful assistant. Use the following context to answer the user question.
+If the answer is not in the context, say you don't know.
 
-<h2>Limitations</h2>
-<ul>
-    <li><strong>Retrieval quality:</strong> Answer quality depends on finding the right documents</li>
-    <li><strong>Latency:</strong> Additional retrieval step adds response time</li>
-    <li><strong>Chunking challenges:</strong> Poor chunking leads to lost context</li>
-    <li><strong>Infrastructure cost:</strong> Vector database hosting and embedding generation</li>
-</ul>
+--- CONTEXT ---
+[Retrieved Snippet 1 from PDF...]
+[Retrieved Snippet 2 from Database...]
 
+--- USER QUESTION ---
+[User's actual query here]
+
+--- ANSWER ---"</code></pre>
+</div>
+
+<h2>Key Challenges</h2>
+<ul>
+    <li><strong>Retrieval Noise:</strong> Finding irrelevant documents can confuse the model.</li>
+    <li><strong>Latency:</strong> The retrieval step adds time to the overall response.</li>
+    <li><strong>Context Window:</strong> If you retrieve too much information, it may exceed the model's capacity.</li>
+</ul>
 
 <script type="text/javascript">
 </script>

@@ -1,0 +1,61 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" dir="ltr" lang="en-US">
+<head>
+    <title>Pros and Cons of Embedding Strategies</title>
+    <style type="text/css" media="screen">
+		@import url( ../shared/style.css );
+	</style>
+	<script src="../shared/scormfunctions.js" type="text/javascript"></script>
+	<script src="../shared/contentfunctions.js" type="text/javascript"></script>
+</head>
+<body>
+<h1>Pros and Cons of Embedding Strategies</h1>
+
+<h2>Comparing Model Hosting Options</h2>
+<table>
+    <tr>
+        <th>Strategy</th>
+        <th>Pros</th>
+        <th>Cons</th>
+    </tr>
+    <tr>
+        <td class="rowheader">API-Based (OpenAI, Cohere)</td>
+        <td>Zero infra management, state-of-the-art quality, easy scaling.</td>
+        <td>Data privacy concerns, latency, per-token costs.</td>
+    </tr>
+    <tr>
+        <td class="rowheader">Self-Hosted (BGE, HuggingFace)</td>
+        <td>Full data control, zero per-token cost, custom optimization.</td>
+        <td>Requires GPU infra, maintenance overhead, complex scaling.</td>
+    </tr>
+</table>
+
+<h2>Advantages of High-Dimension Models</h2>
+<ul>
+    <li><strong>Better Semantic Nuance:</strong> Capture finer distinctions in meaning.</li>
+    <li><strong>Lower Hallucination in RAG:</strong> More accurate retrieval leads to better grounding.</li>
+    <li><strong>Future Proofing:</strong> Truncatable models (Matryoshka) offer flexibility.</li>
+</ul>
+
+<h2>Limitations and Challenges</h2>
+<h3>Storage and Memory</h3>
+<p>Large vector databases can become expensive. Storing 1 million 3072-dimension vectors requires significant RAM and disk space compared to 768-dimension vectors.</p>
+
+<h3>Latency Trade-offs</h3>
+<p>Searching through higher-dimensional spaces takes more compute time. While HNSW indexes mitigate this, there is still a measurable impact on response times.</p>
+
+<h2>Practical Considerations</h2>
+<blockquote>
+<strong>Key Rule:</strong> Don't pay for dimensions you don't use. If your task is simple classification, a 384-dimension model often performs just as well as a 3072-dimension one at a fraction of the cost.
+</blockquote>
+
+<h2>Ethical and Security Considerations</h2>
+<ul>
+    <li><strong>Data Privacy:</strong> Sending sensitive data to third-party APIs requires strict compliance (SOC2, HIPAA).</li>
+    <li><strong>Model Bias:</strong> Embedding models can inherit biases from their training data, affecting search results.</li>
+</ul>
+
+<script type="text/javascript">
+</script>
+</body>
+</html>

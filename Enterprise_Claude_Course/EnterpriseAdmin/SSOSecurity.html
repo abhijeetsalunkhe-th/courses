@@ -11,44 +11,40 @@
 <body>
 <h1>SSO, Security, and Compliance</h1>
 
+<h2>Identity Management with SAML 2.0</h2>
+<p>Enterprise Claude supports SAML 2.0, allowing organizations to centralize authentication through their existing Identity Provider (IdP). This ensures that login policies, such as Multi-Factor Authentication (MFA), are enforced.</p>
 
-<h2>Single Sign-On (SSO) Integration</h2>
-<p>Enterprise Claude supports SAML 2.0 SSO for centralized authentication:</p>
+<h3>Supported IdP Examples</h3>
 <ul>
-    <li><strong>Supported providers:</strong> Okta, Azure AD, Google Workspace, OneLogin, PingFederate</li>
-    <li><strong>SCIM provisioning:</strong> Automatic user provisioning and de-provisioning</li>
-    <li><strong>Just-in-time (JIT) provisioning:</strong> Create accounts on first SSO login</li>
-    <li><strong>Enforced SSO:</strong> Require all users to authenticate via identity provider</li>
+    <li><strong>Okta:</strong> Native app integration available in the Okta Integration Network.</li>
+    <li><strong>Azure AD:</strong> Seamless integration using Enterprise Applications in the Azure Portal.</li>
+    <li><strong>Google Workspace:</strong> Using Google as the SAML IdP.</li>
 </ul>
 
-<h2>Security Controls</h2>
+<h2>Automated User Provisioning (SCIM)</h2>
+<p>System for Cross-domain Identity Management (SCIM) allows you to automate the lifecycle of user accounts. When a user is added to a specific group in your IdP, they are automatically provisioned in Claude. Conversely, when they leave the company, their access is instantly revoked.</p>
+
+<h2>Data Security Architecture</h2>
 <table>
-    <tr><th>Control</th><th>Description</th></tr>
-    <tr><td>IP Allowlisting</td><td>Restrict API access to specific IP ranges</td></tr>
-    <tr><td>Data Retention</td><td>Configure how long conversation data is stored</td></tr>
-    <tr><td>Zero Data Retention</td><td>Opt out of data storage for API calls</td></tr>
-    <tr><td>Encryption</td><td>Data encrypted at rest (AES-256) and in transit (TLS 1.3)</td></tr>
-    <tr><td>Key Rotation</td><td>Automated API key rotation policies</td></tr>
+    <tr><th>Security Layer</th><th>Technical implementation</th></tr>
+    <tr><td class="rowheader">Encryption in Transit</td><td>All data is encrypted using TLS 1.3.</td></tr>
+    <tr><td class="rowheader">Encryption at Rest</td><td>Data is stored using AES-256 encryption.</td></tr>
+    <tr><td class="rowheader">VPC Deployment</td><td>Available for specific high-security enterprise requirements.</td></tr>
+    <tr><td class="rowheader">No Training on Data</td><td>Enterprise data is <strong>never</strong> used to train Anthropic's base models by default.</td></tr>
 </table>
 
 <h2>Compliance and Certifications</h2>
-<p>Anthropic maintains enterprise-grade compliance certifications:</p>
+<p>Anthropic maintains rigorous standards to meet global enterprise requirements:</p>
 <ul>
-    <li><strong>SOC 2 Type II:</strong> Security, availability, and confidentiality controls</li>
-    <li><strong>HIPAA:</strong> Available for healthcare use cases with BAA</li>
-    <li><strong>GDPR:</strong> Data processing agreements and EU data residency options</li>
-    <li><strong>CSA STAR:</strong> Cloud security assessment</li>
+    <li><strong>SOC 2 Type II:</strong> Independent audit of security, availability, and confidentiality.</li>
+    <li><strong>HIPAA:</strong> Support for healthcare data via Business Associate Agreements (BAA).</li>
+    <li><strong>GDPR:</strong> Comprehensive data processing agreements for EU users.</li>
 </ul>
 
-<h2>Usage Controls and Budgets</h2>
-<p>Prevent unexpected costs with built-in controls:</p>
-<ul>
-    <li>Set monthly spending limits per workspace</li>
-    <li>Configure per-key rate limits (requests/minute, tokens/day)</li>
-    <li>Set up budget alerts at 50%, 80%, and 100% thresholds</li>
-    <li>Auto-disable keys when budgets are exceeded</li>
-</ul>
-
+<h2>Scenario: Handling a Data Breach Protocol</h2>
+<blockquote>
+<strong>Emergency Revocation:</strong> In the event of a suspected account compromise, an Org Admin can instantly terminate all active sessions for a user and disable their account through the Admin Console, overriding any cached IdP tokens.
+</blockquote>
 
 <script type="text/javascript">
 </script>

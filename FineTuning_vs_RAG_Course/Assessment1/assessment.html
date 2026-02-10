@@ -1,7 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" >
 <head>
-    <title>Final Comprehensive Assessment</title>
+    <title>Assessment 1: Three Approaches</title>
     <style type="text/css" media="screen">
 		@import url( ../shared/style.css );
         html, body {
@@ -27,10 +27,10 @@
 	<script src="../shared/contentfunctions.js" type="text/javascript"></script>
 </head>
 <body>
-<h1>Final Comprehensive Assessment</h1>
-<p>This final assessment covers all modules. You need 70% to pass and complete the course.</p>
+<h1>Assessment 1: Three Approaches</h1>
+<p>This assessment covers Prompt Engineering, RAG, and Fine-Tuning concepts. You need 70% to pass and continue.</p>
 
-<iframe src="../shared/assessmenttemplate.html?questions=FinalAssessment"></iframe>
+<iframe src="../shared/assessmenttemplate.html?questions=ThreeApproaches"></iframe>
 
 <script type="text/javascript">
 var assessmentPassed = false;
@@ -40,7 +40,7 @@ function RecordTest(score){
         parent.ScormProcessSetValue("cmi.core.score.min", "0");
         parent.ScormProcessSetValue("cmi.core.score.max", "100");
         if (score >= 70){
-            parent.ScormProcessSetValue("cmi.core.lesson_status", "completed");
+            parent.ScormProcessSetValue("cmi.core.lesson_status", "passed");
             assessmentPassed = true;
         } else {
             parent.ScormProcessSetValue("cmi.core.lesson_status", "failed");

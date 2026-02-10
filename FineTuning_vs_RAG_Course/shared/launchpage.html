@@ -1,8 +1,8 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-    <title>Fine-Tuning vs RAG vs Prompt Engineering - Decision Framework</title>
-    <script src="shared/scormfunctions.js" type="text/javascript"></script>
+    <title>Fine-Tuning vs. RAG</title>
+    <script src="scormfunctions.js" type="text/javascript"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         
@@ -74,10 +74,6 @@
             transform: none;
         }
         
-        #navDiv input[type="button"]:active:not(:disabled) {
-            transform: translateY(0);
-        }
-        
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -138,33 +134,19 @@
             background: #e2e8f0;
             color: #4a5568;
         }
-        
-        .modal-btn:hover {
-            transform: translateY(-1px);
-        }
     </style>
     <script type="text/javascript">
-
     function showModal(title, message, showCancel = false) {
         return new Promise((resolve) => {
             const overlay = document.createElement('div');
             overlay.className = 'modal-overlay';
-            
             const modal = document.createElement('div');
             modal.className = 'modal';
-            
-            modal.innerHTML = `
-                <h3>${title}</h3>
-                <p>${message}</p>
-                <div class="modal-buttons">
-                    ${showCancel ? '<button class="modal-btn modal-btn-secondary" onclick="closeModal(false)">Cancel</button>' : ''}
-                    <button class="modal-btn modal-btn-primary" onclick="closeModal(true)">OK</button>
-                </div>
-            `;
-            
+            modal.innerHTML = "<h3>" + title + "</h3><p>" + message + "</p><div class='modal-buttons'>" +
+                (showCancel ? "<button class='modal-btn modal-btn-secondary' onclick='closeModal(false)'>Cancel</button>" : "") +
+                "<button class='modal-btn modal-btn-primary' onclick='closeModal(true)'>OK</button></div>";
             overlay.appendChild(modal);
             document.body.appendChild(overlay);
-            
             window.closeModal = function(result) {
                 document.body.removeChild(overlay);
                 resolve(result);
@@ -172,309 +154,101 @@
         });
     }
 
-    function normalizeScormValue(val) {
-        if (val == null) return "";
-        
-        if (typeof val === "object") {
-            if (val.hasOwnProperty("o")) {
-                return String(val.o);
-            }
-            try {
-                return JSON.stringify(val);
-            } catch {
-                return "";
-            }
-        }
-        
-        return String(val);
-    }
-
-        var pageArray = new Array(6);
-
-    // Course Introduction
-    pageArray[0] = "Introduction/Introduction.html";
-
-    // Understanding the Three Approaches
-    pageArray[1] = "ThreeApproaches/PromptEngineering.html";
-    pageArray[2] = "ThreeApproaches/RAGApproach.html";
-    pageArray[3] = "ThreeApproaches/FineTuning.html";
-
-    // Decision Framework
-    pageArray[4] = "DecisionFramework/DecisionMatrix.html";
-
-    // Final Comprehensive Assessment
-    pageArray[5] = "FinalAssessment/assessment.html"; // 25 unique questions
+    var pageArray = new Array('Introduction/Introduction.html', 'ThreeApproaches/PromptEngineering.html', 'ThreeApproaches/RAGApproach.html', 'ThreeApproaches/FineTuning.html', 'Assessment1/assessment.html', 'DecisionFramework/DecisionMatrix.html', 'Assessment2/assessment.html', 'ProsAndCons/ProsAndCons.html', 'FinalAssessment/assessment.html');
 
     var currentPage = null;
     var startTimeStamp = null;
     var processedUnload = false;
     var reachedEnd = false;
-    var isInitializing = true;
 
     function doStart(){
         startTimeStamp = new Date();
         ScormProcessInitialize();
-
         var completionStatus = ScormProcessGetValue("cmi.core.lesson_status");
         if (completionStatus == "not attempted"){
             ScormProcessSetValue("cmi.core.lesson_status", "incomplete");
         }
-
-        setTimeout(function() {
-            resolveBookmarkAndNavigate();
-        }, 100);
-    }
-    
-    function resolveBookmarkAndNavigate() {
-        var raw = ScormProcessGetValue("cmi.core.lesson_location");
-        var bookmark = normalizeScormValue(raw);
-        
-        var parsedBookmark = parseInt(bookmark, 10);
-        
-        if (
-            bookmark !== "" &&
-            !isNaN(parsedBookmark) &&
-            parsedBookmark >= 0 &&
-            parsedBookmark < pageArray.length
-        ) {
-            showModal('Resume Course', 'Would you like to resume from where you previously left off?', true).then((result) => {
-                if (result) {
-                    currentPage = parsedBookmark;
-                } else {
-                    currentPage = 0;
-                }
-                goToPage();
-                isInitializing = false;
-            });
-        }
-        else{
+        var bookmark = ScormProcessGetValue("cmi.core.lesson_location");
+        if (bookmark == ""){
             currentPage = 0;
             goToPage();
-            isInitializing = false;
+        } else {
+            showModal('Resume Course', 'Would you like to resume from where you previously left off?', true).then((result) => {
+                currentPage = result ? parseInt(bookmark, 10) : 0;
+                goToPage();
+            });
         }
     }
 
     function goToPage(){
         var theIframe = document.getElementById("contentFrame");
-        var prevButton = document.getElementById("butPrevious");
-        var nextButton = document.getElementById("butNext");
+        theIframe.src = "../" + pageArray[currentPage];
+        document.getElementById("butPrevious").disabled = (currentPage == 0);
 
-        theIframe.src = pageArray[currentPage];
-
-        // Reset button states and styling
-        prevButton.disabled = false;
-        nextButton.disabled = false;
-        prevButton.style.opacity = "1";
-        nextButton.style.opacity = "1";
-        prevButton.style.cursor = "pointer";
-        nextButton.style.cursor = "pointer";
-
-        if (currentPage == 0){
-            prevButton.disabled = true;
-            prevButton.style.opacity = "0.5";
-            prevButton.style.cursor = "not-allowed";
-        }
-        else if (currentPage == (pageArray.length - 1)){
-            nextButton.disabled = true;
-            nextButton.style.opacity = "0.5";
-            nextButton.style.cursor = "not-allowed";
+        if (currentPage == (pageArray.length - 1)){
+            document.getElementById("butNext").style.display = "none";
             reachedEnd = true;
+        } else {
+            document.getElementById("butNext").style.display = "inline-block";
         }
-    }
-    
-    function saveBookmark() {
-        if (isInitializing) {
-            return;
-        }
+
         ScormProcessSetValue("cmi.core.lesson_location", currentPage);
     }
 
-    function doUnload(pressedExit){
-        if (processedUnload == true){return;}
+    function doUnload(){
+        if (processedUnload) return;
         processedUnload = true;
-
-        var endTimeStamp = new Date();
-        var totalMilliseconds = (endTimeStamp.getTime() - startTimeStamp.getTime());
-        var scormTime = ConvertMilliSecondsToSCORMTime(totalMilliseconds, false);
-
+        var scormTime = ConvertMilliSecondsToSCORMTime(new Date().getTime() - startTimeStamp.getTime(), false);
         ScormProcessSetValue("cmi.core.session_time", scormTime);
-
-        if (pressedExit == false && reachedEnd == false){
-            ScormProcessSetValue("cmi.core.exit", "suspend");
-        }
-
+        if (!reachedEnd) ScormProcessSetValue("cmi.core.exit", "suspend");
         ScormProcessFinish();
     }
 
     function doPrevious(){
-        if (currentPage > 0){
-            currentPage--;
-        }
+        if (currentPage > 0) currentPage--;
         goToPage();
-        saveBookmark();
     }
 
     function doNext(){
-        // Prevent navigation if already on the last page
-        if (currentPage >= (pageArray.length - 1)) {
-            return;
-        }
-        
         var currentPageUrl = pageArray[currentPage];
         if (currentPageUrl && currentPageUrl.indexOf('assessment.html') !== -1) {
             var iframe = document.getElementById('contentFrame');
             if (iframe && iframe.contentWindow) {
                 try {
-                    // Wait for iframe to load if not ready
-                    if (!iframe.contentWindow.document || iframe.contentWindow.document.readyState !== 'complete') {
-                        setTimeout(doNext, 100);
-                        return;
-                    }
-                    
-                    // Check the nested iframe (assessmenttemplate.html) for assessmentPassed
-                    var assessmentIframe = iframe.contentWindow.document.querySelector('iframe');
-                    if (assessmentIframe && assessmentIframe.contentWindow) {
-                        var assessmentPassed = assessmentIframe.contentWindow.assessmentPassed;
-                        if (assessmentPassed !== true) {
-                            showModal('Assessment Required', 'You must pass the assessment with 70% or higher to continue.');
-                            return;
-                        }
-                    } else {
+                    var assessmentPassed = iframe.contentWindow.assessmentPassed;
+                    if (assessmentPassed !== true) {
                         showModal('Assessment Required', 'You must pass the assessment with 70% or higher to continue.');
                         return;
                     }
-                } catch(e) {
-                    // If we can't access iframe content, assume assessment not completed
-                    showModal('Assessment Required', 'You must pass the assessment with 70% or higher to continue.');
-                    return;
-                }
-            } else {
-                showModal('Assessment Required', 'You must pass the assessment with 70% or higher to continue.');
-                return;
+                } catch(e) {}
             }
         }
-        
-        currentPage++;
-        goToPage();
-        saveBookmark();
-    }
-
-    function doExit(){
-        if (reachedEnd == false) {
-            showModal('Save Progress', 'Would you like to save your progress to resume later?', true).then((result) => {
-                if (result) {
-                    ScormProcessSetValue("cmi.core.exit", "suspend");
-                } else {
-                    ScormProcessSetValue("cmi.core.exit", "");
-                }
-                doUnload(true);
-            });
-        } else {
-            ScormProcessSetValue("cmi.core.exit", "");
-            doUnload(true);
-        }
-    }
-
-    function RecordTest(score){
-        ScormProcessSetValue("cmi.core.score.raw", score);
-        ScormProcessSetValue("cmi.core.score.min", "0");
-        ScormProcessSetValue("cmi.core.score.max", "100");
-
-        if (score >= 70){
-            // If we're on the final assessment and user passed, mark as completed
-            if (currentPage == (pageArray.length - 1)) {
-                ScormProcessSetValue("cmi.core.lesson_status", "completed");
-            } else {
-                ScormProcessSetValue("cmi.core.lesson_status", "passed");
-            }
-        }
-        else{
-            ScormProcessSetValue("cmi.core.lesson_status", "failed");
+        if (currentPage < (pageArray.length - 1)){
+            currentPage++;
+            goToPage();
         }
     }
 
     function ConvertMilliSecondsToSCORMTime(intTotalMilliseconds, blnIncludeFraction){
-	    var intHours;
-	    var intintMinutes;
-	    var intSeconds;
-	    var intMilliseconds;
-	    var intHundredths;
-	    var strCMITimeSpan;
-
-	    if (blnIncludeFraction == null || blnIncludeFraction == undefined){
-		    blnIncludeFraction = true;
-	    }
-
-	    intMilliseconds = intTotalMilliseconds % 1000;
-	    intSeconds = ((intTotalMilliseconds - intMilliseconds) / 1000) % 60;
-	    intMinutes = ((intTotalMilliseconds - intMilliseconds - (intSeconds * 1000)) / 60000) % 60;
-	    intHours = (intTotalMilliseconds - intMilliseconds - (intSeconds * 1000) - (intMinutes * 60000)) / 3600000;
-
-	    if (intHours == 10000) {
-		    intHours = 9999;
-		    intMinutes = (intTotalMilliseconds - (intHours * 3600000)) / 60000;
-		    if (intMinutes == 100) {
-			    intMinutes = 99;
-		    }
-		    intMinutes = Math.floor(intMinutes);
-
-		    intSeconds = (intTotalMilliseconds - (intHours * 3600000) - (intMinutes * 60000)) / 1000;
-		    if (intSeconds == 100) {
-			    intSeconds = 99;
-		    }
-		    intSeconds = Math.floor(intSeconds);
-
-		    intMilliseconds = (intTotalMilliseconds - (intHours * 3600000) - (intMinutes * 60000) - (intSeconds * 1000));
-	    }
-
-	    intHundredths = Math.floor(intMilliseconds / 10);
-	    strCMITimeSpan = ZeroPad(intHours, 4) + ":" + ZeroPad(intMinutes, 2) + ":" + ZeroPad(intSeconds, 2);
-
-	    if (blnIncludeFraction){
-		    strCMITimeSpan += "." + intHundredths;
-	    }
-
-	    if (intHours > 9999) {
-		    strCMITimeSpan = "9999:99:99";
-		    if (blnIncludeFraction){
-			    strCMITimeSpan += ".99";
-		    }
-	    }
-
-	    return strCMITimeSpan;
+        var intSeconds = Math.floor(intTotalMilliseconds / 1000) % 60;
+        var intMinutes = Math.floor(intTotalMilliseconds / 60000) % 60;
+        var intHours = Math.floor(intTotalMilliseconds / 3600000);
+        return ZeroPad(intHours, 4) + ":" + ZeroPad(intMinutes, 2) + ":" + ZeroPad(intSeconds, 2) + (blnIncludeFraction ? ".00" : "");
     }
 
     function ZeroPad(intNum, intNumDigits){
-	    var strTemp;
-	    var intLen;
-	    var i;
-
-	    strTemp = new String(intNum);
-	    intLen = strTemp.length;
-
-	    if (intLen > intNumDigits){
-		    strTemp = strTemp.substr(0,intNumDigits);
-	    }
-	    else{
-		    for (i=intLen; i<intNumDigits; i++){
-			    strTemp = "0" + strTemp;
-		    }
-	    }
-
-	    return strTemp;
+        var str = intNum.toString();
+        while(str.length < intNumDigits) str = "0" + str;
+        return str;
     }
     </script>
-
 </head>
-<body onload="doStart(false);" onbeforeunload="doUnload(false);" onunload="doUnload();">
-
-    <iframe width="100%" id="contentFrame" src="about:blank"></iframe>
-
+<body onload="doStart();" onbeforeunload="doUnload();" onunload="doUnload();">
+    <iframe id="contentFrame" src="about:blank"></iframe>
     <div id="navDiv">
         <input type="button" value="< Previous" id="butPrevious" onclick="doPrevious();"/>
         <input type="button" value="Next >" id="butNext" onclick="doNext();"/>
-        <input type="button" value="Exit" id="butExit" onclick="doExit();"/>
+        <input type="button" value="Exit" id="butExit" onclick="doUnload(); window.close();"/>
     </div>
-
 </body>
 </html>

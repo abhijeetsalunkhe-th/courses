@@ -1,5 +1,5 @@
 <?xml version="1.0" standalone="no" ?>
-<manifest identifier="com.scorm.finetuning.vs.rag" version="1"
+<manifest identifier="com.scorm.genaicourse.finetuningvsrag" version="1"
          xmlns="http://www.imsproject.org/xsd/imscp_rootv1p1p2"
          xmlns:adlcp="http://www.adlnet.org/xsd/adlcp_rootv1p2"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -11,11 +11,11 @@
     <schema>ADL SCORM</schema>
     <schemaversion>1.2</schemaversion>
   </metadata>
-	<organizations default="finetuning_vs_rag_org">
-		<organization identifier="finetuning_vs_rag_org">
-			<title>Fine-Tuning vs RAG vs Prompt Engineering - Decision Framework</title>
+	<organizations default="com_scorm_genaicourse_finetuningvsrag_org">
+		<organization identifier="com_scorm_genaicourse_finetuningvsrag_org">
+			<title>Fine-Tuning vs. RAG - Choosing the Right AI Strategy</title>
 			<item identifier="item_1" identifierref="resource_1">
-				<title>Fine-Tuning vs RAG vs Prompt Engineering - Decision Framework</title>
+				<title>Fine-Tuning vs. RAG - Choosing the Right AI Strategy</title>
 			</item>
 		</organization>
 	</organizations>
@@ -25,8 +25,11 @@
       <file href="ThreeApproaches/PromptEngineering.html"/>
       <file href="ThreeApproaches/RAGApproach.html"/>
       <file href="ThreeApproaches/FineTuning.html"/>
-      <file href="ThreeApproaches/questions.js"/>
+      <file href="Assessment1/assessment.html"/>
       <file href="DecisionFramework/DecisionMatrix.html"/>
+      <file href="Assessment2/assessment.html"/>
+      <file href="ProsAndCons/ProsAndCons.html"/>
+      <file href="ThreeApproaches/questions.js"/>
       <file href="DecisionFramework/questions.js"/>
       <file href="FinalAssessment/assessment.html"/>
       <file href="FinalAssessment/questions.js"/>
