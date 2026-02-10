@@ -1,7 +1,7 @@
 test.AddQuestion( new Question ("em_q1",
                                 "What is the primary purpose of text embeddings in AI applications?",
                                 QUESTION_TYPE_CHOICE,
-                                new Array("To compress text for faster transmission", "To represent semantic meaning as dense vectors in N-dimensional space", "To translate text between different languages", "To check for grammatical errors in a document"),
+                                new Array("To check for grammatical errors in a document", "To translate text between different languages", "To represent semantic meaning as dense vectors in N-dimensional space", "To compress text for faster transmission"),
                                 "To represent semantic meaning as dense vectors in N-dimensional space",
                                 "obj_embedding_fundamentals")
                 );
@@ -9,7 +9,7 @@ test.AddQuestion( new Question ("em_q1",
 test.AddQuestion( new Question ("em_q2",
                                 "Which mathematical formula is most commonly used to measure the similarity between two embedding vectors?",
                                 QUESTION_TYPE_CHOICE,
-                                new Array("Euclidean distance", "Manhattan distance", "Cosine similarity", "Pearson correlation"),
+                                new Array("Euclidean distance", "Cosine similarity", "Pearson correlation", "Manhattan distance"),
                                 "Cosine similarity",
                                 "obj_embedding_fundamentals")
                 );
@@ -17,7 +17,7 @@ test.AddQuestion( new Question ("em_q2",
 test.AddQuestion( new Question ("em_q3",
                                 "A developer needs to build a RAG pipeline for 50-page technical manuals. Which model feature is MOST critical for this use case?",
                                 QUESTION_TYPE_CHOICE,
-                                new Array("Low dimensionality", "A large context window (e.g., 32K tokens)", "Low per-token cost", "Open-source licensing"),
+                                new Array("Low per-token cost", "Open-source licensing", "A large context window (e.g., 32K tokens)", "Low dimensionality"),
                                 "A large context window (e.g., 32K tokens)",
                                 "obj_choosing_models")
                 );
@@ -33,7 +33,7 @@ test.AddQuestion( new Question ("em_q4",
 test.AddQuestion( new Question ("em_q5",
                                 "Scenario: Your company has strict data privacy requirements and cannot send data to third-party APIs. Which model should you choose?",
                                 QUESTION_TYPE_CHOICE,
-                                new Array("OpenAI text-embedding-3-large", "Cohere embed-v3", "BAAI bge-large-en-v1.5 (Self-hosted)", "Voyage-3"),
+                                new Array("OpenAI text-embedding-3-large", "Voyage-3", "Cohere embed-v3", "BAAI bge-large-en-v1.5 (Self-hosted)"),
                                 "BAAI bge-large-en-v1.5 (Self-hosted)",
                                 "obj_choosing_models")
                 );
@@ -41,7 +41,7 @@ test.AddQuestion( new Question ("em_q5",
 test.AddQuestion( new Question ("em_q6",
                                 "Which benchmark is considered the industry standard for evaluating embedding models?",
                                 QUESTION_TYPE_CHOICE,
-                                new Array("GLUE", "SuperGLUE", "MTEB (Massive Text Embedding Benchmark)", "SQuAD"),
+                                new Array("MTEB (Massive Text Embedding Benchmark)", "GLUE", "SQuAD", "SuperGLUE"),
                                 "MTEB (Massive Text Embedding Benchmark)",
                                 "obj_embedding_fundamentals")
                 );
@@ -49,7 +49,7 @@ test.AddQuestion( new Question ("em_q6",
 test.AddQuestion( new Question ("em_q7",
                                 "When is fine-tuning an embedding model typically recommended?",
                                 QUESTION_TYPE_CHOICE,
-                                new Array("For every new application to ensure maximum accuracy", "When the data contains highly specialized vocabulary not present in general training sets", "To reduce the dimensionality of the vectors", "To speed up the inference time of the API"),
+                                new Array("To speed up the inference time of the API", "For every new application to ensure maximum accuracy", "To reduce the dimensionality of the vectors", "When the data contains highly specialized vocabulary not present in general training sets"),
                                 "When the data contains highly specialized vocabulary not present in general training sets",
                                 "obj_finetuning")
                 );
@@ -57,7 +57,7 @@ test.AddQuestion( new Question ("em_q7",
 test.AddQuestion( new Question ("em_q8",
                                 "What is a major trade-off when increasing the number of dimensions in an embedding model?",
                                 QUESTION_TYPE_CHOICE,
-                                new Array("Increased accuracy but higher storage and search latency", "Decreased accuracy but lower cost", "Better multilingual support but shorter context window", "No trade-offs; higher dimensions are always better"),
+                                new Array("Increased accuracy but higher storage and search latency", "Better multilingual support but shorter context window", "Decreased accuracy but lower cost", "No trade-offs; higher dimensions are always better"),
                                 "Increased accuracy but higher storage and search latency",
                                 "obj_embedding_fundamentals")
                 );

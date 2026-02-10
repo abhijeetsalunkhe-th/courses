@@ -33,15 +33,18 @@
 <iframe src="../shared/assessmenttemplate.html?questions=FinalAssessment"></iframe>
 
 <script type="text/javascript">
+var assessmentPassed = false;
 function RecordTest(score){
     if (parent.ScormProcessSetValue) {
         parent.ScormProcessSetValue("cmi.core.score.raw", score);
         parent.ScormProcessSetValue("cmi.core.score.min", "0");
         parent.ScormProcessSetValue("cmi.core.score.max", "100");
         if (score >= 70){
-            parent.ScormProcessSetValue("cmi.core.lesson_status", "passed");
+            parent.ScormProcessSetValue("cmi.core.lesson_status", "completed");
+            assessmentPassed = true;
         } else {
             parent.ScormProcessSetValue("cmi.core.lesson_status", "failed");
+            assessmentPassed = false;
         }
     }
 }

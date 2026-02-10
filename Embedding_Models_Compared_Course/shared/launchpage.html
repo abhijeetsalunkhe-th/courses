@@ -134,10 +134,6 @@
             background: #e2e8f0;
             color: #4a5568;
         }
-        
-        .modal-btn:hover {
-            transform: translateY(-1px);
-        }
     </style>
     <script type="text/javascript">
     function showModal(title, message, showCancel = false) {
@@ -158,12 +154,7 @@
         });
     }
 
-    var pageArray = new Array(5);
-    pageArray[0] = "Introduction/Introduction.html";
-    pageArray[1] = "EmbeddingModels/EmbeddingFundamentals.html";
-    pageArray[2] = "EmbeddingModels/ChoosingFineTuning.html";
-    pageArray[3] = "ProsAndCons/ProsAndCons.html";
-    pageArray[4] = "FinalAssessment/assessment.html";
+    var pageArray = new Array('Introduction/Introduction.html', 'EmbeddingModels/EmbeddingFundamentals.html', 'EmbeddingModels/ChoosingFineTuning.html', 'Assessment1/assessment.html', 'ProsAndCons/ProsAndCons.html', 'FinalAssessment/assessment.html');
 
     var currentPage = null;
     var startTimeStamp = null;
@@ -193,7 +184,14 @@
         var theIframe = document.getElementById("contentFrame");
         theIframe.src = "../" + pageArray[currentPage];
         document.getElementById("butPrevious").disabled = (currentPage == 0);
-        document.getElementById("butNext").disabled = (currentPage == (pageArray.length - 1));
+
+        if (currentPage == (pageArray.length - 1)){
+            document.getElementById("butNext").style.display = "none";
+            reachedEnd = true;
+        } else {
+            document.getElementById("butNext").style.display = "inline-block";
+        }
+
         ScormProcessSetValue("cmi.core.lesson_location", currentPage);
     }
 
@@ -212,9 +210,23 @@
     }
 
     function doNext(){
-        if (currentPage < (pageArray.length - 1)) currentPage++;
-        if (currentPage == (pageArray.length - 1)) reachedEnd = true;
-        goToPage();
+        var currentPageUrl = pageArray[currentPage];
+        if (currentPageUrl && currentPageUrl.indexOf('assessment.html') !== -1) {
+            var iframe = document.getElementById('contentFrame');
+            if (iframe && iframe.contentWindow) {
+                try {
+                    var assessmentPassed = iframe.contentWindow.assessmentPassed;
+                    if (assessmentPassed !== true) {
+                        showModal('Assessment Required', 'You must pass the assessment with 70% or higher to continue.');
+                        return;
+                    }
+                } catch(e) {}
+            }
+        }
+        if (currentPage < (pageArray.length - 1)){
+            currentPage++;
+            goToPage();
+        }
     }
 
     function ConvertMilliSecondsToSCORMTime(intTotalMilliseconds, blnIncludeFraction){
